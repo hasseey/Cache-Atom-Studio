@@ -1,0 +1,38 @@
+{
+	"context-menu": {
+		"atom-text-editor": [
+			{
+				"label": "Cache-Atom-Studio",
+				"submenu": [
+					{ "label": "Compile", "command": "cache-atom-studio:compile" },
+					{ "label": "View Class Document", "command": "cache-atom-studio:classDocument" }
+				]
+			}
+		],
+		".tree-view .file .name[data-name$=\\.xml]": [
+			{
+				"label": "Cache-Atom-Studio",
+				"submenu": [
+					{ "label": "Compile", "command": "cache-atom-studio:compile" },
+					{ "label": "View Class Document", "command": "cache-atom-studio:classDocument" }
+				]
+			}
+		]
+	},
+	"menu": [
+		{
+			"label": "Packages",
+			"submenu": [
+				{
+					"label": "Cache-Atom-Studio",
+					"submenu": [
+						{ "label": "Config", "command": "cache-atom-studio:config" },
+						{ "label": "Compile", "command": "cache-atom-studio:compile" },
+						{ "label": "Compile All", "command": "cache-atom-studio:compile-all" },
+						{ "label": "Export All", "command": "cache-atom-studio:export-all" }
+					]
+				}
+			]
+		}
+	]
+}

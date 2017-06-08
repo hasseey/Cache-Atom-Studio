@@ -1,0 +1,15 @@
+'.text.xml':
+	'Cache Class':
+		'prefix': 'cl'
+		'body': """
+			<?xml version="1.0" encoding="UTF-8"?>
+			<Export generator="Cache" version="25" ts="${1:2017-01-01 00:00:00}">
+				<Class name="${2:className}">
+					<Description><![CDATA[
+						${3:discription}]]></Description>
+					<Super>${4:%RegisteredObject}</Super>
+					<TimeCreated>${5:64421,49318.40928}</TimeCreated>
+					$0
+				</Class>
+			</Export>
+		"""

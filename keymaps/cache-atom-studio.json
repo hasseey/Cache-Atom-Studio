@@ -1,0 +1,7 @@
+{
+	"atom-workspace": {
+		"ctrl-F7": "cache-atom-studio:compile",
+		"ctrl-alt-d": "cache-atom-studio:classDocument",
+		"ctrl-shift-3": "cache-atom-studio:comment"
+	}
+}
