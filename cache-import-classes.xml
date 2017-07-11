@@ -1,0 +1,692 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.1.1 (Build 111U)" ts="2017-07-10 23:49:36">
+<Class name="cas.func.Common">
+<Description><![CDATA[
+<b> Cache Atom Studio - Commands </b> : 2017/06/17 : Akio Hashimoto.<br>
+<br>]]></Description>
+<IncludeCode>%sySystem,%occFile</IncludeCode>
+<Super>%RegisteredObject</Super>
+<TimeChanged>64461,84082.659342</TimeChanged>
+<TimeCreated>64451,6886.500997</TimeCreated>
+
+<Method name="createDirectory">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>path:%Status</FormalSpec>
+<Implementation><![CDATA[
+	i ('##class(%File).DirectoryExists(path)) {
+		d ##class(%File).CreateDirectoryChain(path)
+	}
+	q
+]]></Implementation>
+</Method>
+
+<Method name="updateClass">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>ns:%String,className:%String,text:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s result=$$$OK
+	try {
+		new $namespace
+		s $namespace=ns
+		
+		i ($e($zcvt(className, "l"), *-3, *)=".cls") {
+			s className=$e(className, 1, *-4)
+		}
+		
+		s st=##class(%Dictionary.ClassDefinition).%ExistsId(className)
+		i ('st) {
+			s nc = ##class(%Dictionary.ClassDefinition).%New(className)
+			s nc.Super = ""
+			s nc.Abstract = ""
+			s st=nc.%Save()
+		}
+		
+		s stream=##class(%Stream.GlobalCharacter).%New()
+		d stream.Write($zcvt(text,"I","UTF8"))
+		$$$THROWONERROR(r, ##class(%Compiler.UDL.TextServices).SetTextFromStream(ns, className, stream))
+	} catch e {
+		s result=e.AsStatus()
+	}
+	q result
+]]></Implementation>
+</Method>
+
+<Method name="updateRoutine">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>ns:%String,routineName:%String,text:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s result=$$$OK
+	try {
+		new $namespace
+		s $namespace=ns
+		
+		s st=##class(%Routine).Exists(routineName)
+		i ('st) {
+			s routine=##class(%Routine).%New(routineName)
+		} else {
+			s routine=##class(%Routine).%OpenId(routineName)
+		}
+		
+		s stream=##class(%Stream.GlobalCharacter).%New()
+		d stream.Write($zcvt(text,"I","UTF8"))
+		$$$THROWONERROR(r, routine.CopyFromAndSave(stream))
+	} catch e {
+		s result=e.AsStatus()
+	}
+	q result
+]]></Implementation>
+</Method>
+
+<Method name="compileClass">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>ns:%String,className:%String,*log:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s result=$$$OK
+	try {
+		new $namespace
+		s $namespace=ns
+		
+		i ($e($zcvt(className, "l"), *-3, *)=".cls") {
+			s className=$e(className, 1, *-4)
+		}
+		
+		q:'##class(%Dictionary.ClassDefinition).%ExistsId(className)
+		
+		s sts=1
+		s clog=##class(%Zcas.Redirect).run("%SYSTEM.OBJ", "Compile", .sts, className, "cuk", .err)
+		$$$THROWONERROR(r, sts)
+		
+		s clog=$tr($zstrip(clog, "<>w", $c(13,10)), $c(13), "")
+		f p=1:1:$l(clog, $c(10)) {
+			s log($i(log))=$p(clog, $c(10), p)
+		}
+	} catch e {
+		s result=e.AsStatus()
+	}
+	q result
+]]></Implementation>
+</Method>
+
+<Method name="compileRoutine">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>ns:%String,routineName:%String,*log:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s result=$$$OK
+	try {
+		new $namespace
+		s $namespace=ns
+		
+		q:'##class(%Routine).Exists(routineName)
+		
+		s routine=##class(%RoutineMgr).%OpenId(routineName)
+		i ($e($zcvt(routineName, "l"), *-3, *)'=".inc") {
+			s sts=1
+			s clog=##class(%Zcas.Redirect).runObj(routine, "Compile", .sts, "cuk")
+			$$$THROWONERROR(r, sts)
+			
+			s clog=$tr($zstrip(clog, "<>w", $c(13,10)), $c(13), "")
+			f p=1:1:$l(clog, $c(10)) {
+				s log($i(log))=$p(clog, $c(10), p)
+			}
+		}
+	} catch e {
+		s result=e.AsStatus()
+	}
+	q result
+]]></Implementation>
+</Method>
+
+<Method name="compileAll">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>ns:%String,*log:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s result=$$$OK
+	try {
+		new $namespace
+		s $namespace=ns
+		
+		k list
+		
+		s rs=##class(%ResultSet).%New("%ClassDefinition:ClassInfo")
+		$$$THROWONERROR(r, rs.Execute("", 0))
+		
+		d {
+			s a=rs.Next(.ec)
+			$$$THROWONERROR(ec, ec)
+			i (a) {
+				continue:rs.Get("System")=4
+				
+				s clsName=rs.Get("Name")
+				continue:$e(clsName, 1, 1)="%"
+				
+				s list(clsName_".cls")=""
+			}
+		} while(a)
+		
+		s rs=##class(%ResultSet).%New("%Library.Routine:RoutineList")
+		$$$THROWONERROR(r, rs.Execute("", 1, 0, ns))
+		
+		s routines=""
+		d {
+			s a=rs.Next(.ec)
+			$$$THROWONERROR(ec, ec)
+			i (a) {
+				s rtnName=rs.Get("Name")
+				continue:$e(rtnName, 1, 1)="%"
+				continue:$match(rtnName, "(?i).*\.\d+\.INT$")
+				continue:$match(rtnName, "(?i).*\.[A-Z]?\d+\.MAC$")
+				
+				s rtn=##class(%Routine).%OpenId(rtnName)
+				i ('rtn.Generated) {
+					s list(rtnName)=""
+				}
+			}
+		} while(a)
+		
+		s pjName="cosAtomProject"
+		s pj=##class(%Studio.Project).%New()
+		s pj.Name=pjName
+		
+		s name="", p=1
+		f {
+			s name=$o(list(name)) q:name=""
+			s r=pj.AddItem(name), p=p+1
+		}
+		s c=pj.%Save(),c=pj.%Close() k pj
+		
+		i (p>0) {
+			s sts=1
+			s clog=##class(%Zcas.Redirect).run("%SYSTEM.OBJ", "CompileProject", .sts, pjName, "cuk", .err)
+			$$$THROWONERROR(r, sts)
+			
+			s clog=$tr($zstrip(clog, "<>w", $c(13,10)), $c(13), "")
+			f p=1:1:$l(clog, $c(10)) {
+				s log($i(log))=$p(clog, $c(10), p)
+			}
+		}
+		$$$THROWONERROR(r, $System.OBJ.DeleteProject(pjName))
+	} catch e {
+		s result=e.AsStatus()
+	}
+	q result
+]]></Implementation>
+</Method>
+
+<Method name="deleteClass">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>ns:%String,className:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s result=$$$OK
+	try {
+		new $namespace
+		s $namespace=ns
+		
+		i ($e($zcvt(className, "l"), *-3, *)=".cls") {
+			s className=$e(className, 1, *-4)
+		}
+		
+		q:'##class(%Dictionary.ClassDefinition).%ExistsId(className)
+		
+		$$$THROWONERROR(r, $System.OBJ.Delete(className, "e-d", .err))
+	} catch e {
+		s result=e.AsStatus()
+	}
+	q result
+]]></Implementation>
+</Method>
+
+<Method name="deleteRoutine">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>ns:%String,routineName:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s result=$$$OK
+	try {
+		new $namespace
+		s $namespace=ns
+		
+		q:'##class(%Routine).Exists(routineName)
+		
+		$$$THROWONERROR(r, ##class(%Routine).Delete(routineName, 0, 0, ns))
+	} catch e {
+		s result=e.AsStatus()
+	}
+	q result
+]]></Implementation>
+</Method>
+
+<Method name="exportClass">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>ns:%String,path:%String,className</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s result=$$$OK
+	try {
+		new $namespace
+		s $namespace=ns
+		
+		s path=$tr(path, "\", "/")
+		s path=$s($e(path, *)="/":$e(path, 1, *-1), 1:path)
+		
+		i ($e($zcvt(className, "l"), *-3, *)=".cls") {
+			s className=$e(className, 1, *-4)
+		}
+		
+		s wpath=path_"/Class/"
+		s list=$lfs(className, ".")
+		f i=1:1:$ll(list)-1 {
+			s wpath=wpath_$li(list, i)_"/"
+		}
+		d ..createDirectory(wpath)
+		
+		s r=##class(%Compiler.UDL.TextServices).GetTextAsStream(ns, className, .tStream)
+		s file=##class(%Stream.FileBinary).%New()
+		s wfile=wpath_$li(list, *)_".cls"
+		s file.Filename=wfile
+		s r=file.Write($zcvt(tStream.Read(tStream.Size), "O", "UTF8"))
+		s r=file.%Save()
+		k file
+		i ($$$ISWINDOWS) {
+		} else {
+			d $zf(-1, "chmod 777 "_wfile)
+		}
+	} catch e {
+		s result=e.AsStatus()
+	}
+	q result
+]]></Implementation>
+</Method>
+
+<Method name="exportRoutine">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>ns:%String,path:%String,routineName</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s result=$$$OK
+	try {
+		new $namespace
+		s $namespace=ns
+		
+		s path=$tr(path, "\", "/")
+		s path=$s($e(path, *)="/":$e(path, 1, *-1), 1:path)
+		
+		s wpath=path_"/Routine/"
+		d ..createDirectory(wpath)
+		
+		s rtn=##class(%Routine).%OpenId(routineName)
+		i ('rtn.Generated) {
+			s list=$lfs(routineName, ".")
+			
+			s file=##class(%Stream.FileBinary).%New()
+			s wfile=wpath_$lts($li(list,1,*-1),".")_"."_$zcvt($li(list, *), "l")
+			s file.Filename=wfile
+			//s r=file.CopyFrom(rtn)
+			s r=file.Write($zcvt(rtn.Read(rtn.Size), "O", "UTF8"))
+			s r=file.%Save()
+			k file
+			i ($$$ISWINDOWS) {
+			} else {
+				d $zf(-1, "chmod 777 "_wfile)
+			}
+		}
+	} catch e {
+		s result=e.AsStatus()
+	}
+	q result
+]]></Implementation>
+</Method>
+
+<Method name="exportClassFiles">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>ns:%String,path:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s result=$$$OK
+	try {
+		new $namespace
+		s $namespace=ns
+		
+		s path=$tr(path, "\", "/")
+		s path=$s($e(path, *)="/":$e(path, 1, *-1), 1:path)
+		
+		s rs=##class(%ResultSet).%New("%ClassDefinition:ClassInfo")
+		$$$THROWONERROR(r, rs.Execute("", 0))
+		
+		d {
+			s a=rs.Next(.ec)
+			$$$THROWONERROR(ec, ec)
+			i (a) {
+				continue:rs.Get("System")=4
+				
+				s clsName=rs.Get("Name")
+				continue:$e(clsName, 1, 1)="%"
+				
+				s wpath=path_"/Class/"
+				s list=$lfs(clsName, ".")
+				f i=1:1:$ll(list)-1 {
+					s wpath=wpath_$li(list, i)_"/"
+				}
+				d ..createDirectory(wpath)
+				
+				s r=##class(%Compiler.UDL.TextServices).GetTextAsStream(ns, clsName, .tStream)
+				s file=##class(%Stream.FileBinary).%New()
+				s wfile=wpath_$li(list, *)_".cls"
+				s file.Filename=wfile
+				s r=file.Write($zcvt(tStream.Read(tStream.Size), "O", "UTF8"))
+				s r=file.%Save()
+				k file
+				i ($$$ISWINDOWS) {
+				} else {
+					d $zf(-1, "chmod 777 "_wfile)
+				}
+			}
+		} while(a)
+	} catch e {
+		s result=e.AsStatus()
+	}
+	q result
+]]></Implementation>
+</Method>
+
+<Method name="exportRoutineFiles">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>ns:%String,path:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s result=$$$OK
+	try {
+		new $namespace
+		s $namespace=ns
+		
+		s path=$tr(path, "\", "/")
+		s path=$s($e(path, *)="/":$e(path, 1, *-1), 1:path)
+		
+		s wpath=path_"/Routine/"
+		d ..createDirectory(wpath)
+		
+		s rs=##class(%ResultSet).%New("%Library.Routine:RoutineList")
+		$$$THROWONERROR(r, rs.Execute("", 1, 0, ns))
+		
+		s routines=""
+		d {
+			s a=rs.Next(.ec)
+			$$$THROWONERROR(ec, ec)
+			i (a) {
+				s rtnName=rs.Get("Name")
+				continue:$e(rtnName, 1, 1)="%"
+				continue:$match(rtnName, "(?i).*\.\d+\.INT$")
+				continue:$match(rtnName, "(?i).*\.[A-Z]?\d+\.MAC$")
+				
+				s rtn=##class(%Routine).%OpenId(rtnName)
+				i ('rtn.Generated) {
+					s list=$lfs(rtnName, ".")
+					
+					s file=##class(%Stream.FileBinary).%New()
+					s wfile=wpath_$lts($li(list,1,*-1),".")_"."_$zcvt($li(list, *), "l")
+					s file.Filename=wfile
+					//s r=file.CopyFrom(rtn)
+					s r=file.Write($zcvt(rtn.Read(rtn.Size), "O", "UTF8"))
+					s r=file.%Save()
+					k file
+					i ($$$ISWINDOWS) {
+					} else {
+						d $zf(-1, "chmod 777 "_wfile)
+					}
+				}
+			}
+		} while(a)
+	} catch e {
+		s result=e.AsStatus()
+	}
+	q result
+]]></Implementation>
+</Method>
+
+<Method name="command">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>ns:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s result=$$$OK
+	try {
+		new $namespace
+		s $namespace=ns
+		
+		s cmd="s r=$System.OBJ.Compile(""User.NewClass1"", ""cuk"", .err)"
+		s device="|TRM|",od=$io
+		o device:(cmd:"QR"):100 i '$t ztrap
+		u device
+		
+		s eof=$zu(68,40,1),flg=0
+		f j=1:1 {
+			q:flg
+			
+			r line:10 i '$t s flg=1 s line="ERR::Read Timeout."
+			s flg=$zeof
+			
+			u od
+			s lines($i(lines))=line
+			u device
+		}
+		s eof=$zu(68,40,eof)
+		c device
+		u od
+		
+		m ^Ah(2)=lines
+	} catch e {
+		s result=e.AsStatus()
+	}
+	q result
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="cas.service.webapi.Broker">
+<Description><![CDATA[
+<b> Cache Atom Studio - WebApi </b> : 2017/06/17 : Akio Hashimoto.<br>
+<br>]]></Description>
+<Super>%CSP.REST</Super>
+<TimeChanged>64458,43228.087712</TimeChanged>
+<TimeCreated>64443,65296.487902</TimeCreated>
+
+<XData name="UrlMap">
+<Data><![CDATA[
+<Routes>
+<Route Url="/start/" Method="POST" Call="start" />
+<Route Url="/end/" Method="POST" Call="end" />
+<Route Url="/update/" Method="POST" Call="update" />
+<Route Url="/compile/" Method="POST" Call="compile" />
+<Route Url="/compile-all/" Method="POST" Call="compileAll" />
+<Route Url="/delete/" Method="POST" Call="delete" />
+<Route Url="/export-all/" Method="POST" Call="exportAll" />
+</Routes>
+]]></Data>
+</XData>
+
+<Method name="start">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s json={
+		"CSPSessionCookie":(%session.CSPSessionCookie)
+	}
+	s %response.ContentType="application/json; charset=UTF-8"
+	w json.%ToJSON()
+	q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="end">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s %session.EndSession=1
+	q $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="update">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s result=$$$OK
+	s obj=##class(%DynamicObject).%FromJSON(%request.Content), xjson=$zcvt($zcvt(obj.%ToJSON(), "i", "URL"), "i", "UTF8")
+	s json=##class(%DynamicObject).%FromJSON(xjson) kill obj
+	try {
+		i ($e($zcvt(json.sourceName, "l"), *-3, *)=".cls") {
+			$$$THROWONERROR(r, ##class(cas.func.Common).updateClass(json.namespace, json.sourceName, json.source))
+		} else {
+			$$$THROWONERROR(r, ##class(cas.func.Common).updateRoutine(json.namespace, json.sourceName, json.source))
+		}
+		
+		s res={
+			"status":"1",
+			"message":["Saving of source is complete."]
+		}
+		s %response.ContentType="application/json; charset=UTF-8"
+		w res.%ToJSON()
+	} catch e {
+		s result=e.AsStatus()
+	}
+	q result
+]]></Implementation>
+</Method>
+
+<Method name="compile">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s result=$$$OK
+	s obj=##class(%DynamicObject).%FromJSON(%request.Content), xjson=$zcvt($zcvt(obj.%ToJSON(), "i", "URL"), "i", "UTF8")
+	s json=##class(%DynamicObject).%FromJSON(xjson) kill obj
+	try {
+		s clog=[]
+		s classes = json.list.%GetIterator()
+		while classes.%GetNext(.key , .sourceName ) {
+			i ($e($zcvt(sourceName, "l"), *-3, *)=".cls") {
+				$$$THROWONERROR(r, ##class(cas.func.Common).compileClass(json.namespace, sourceName, .log))
+				s p=""
+				f {
+					s p=$o(log(p), 1, dat) q:p=""
+					d clog.%Push(dat)
+				}
+				$$$THROWONERROR(r, ##class(cas.func.Common).exportClass(json.namespace, json.directory, sourceName))
+			} else {
+				$$$THROWONERROR(r, ##class(cas.func.Common).compileRoutine(json.namespace, sourceName, .log))
+				s p=""
+				f {
+					s p=$o(log(p), 1, dat) q:p=""
+					d clog.%Push(dat)
+				}
+				$$$THROWONERROR(r, ##class(cas.func.Common).exportRoutine(json.namespace, json.directory, sourceName))
+			}
+		}
+		
+		s res={
+			"status":"1",
+			"message":"",
+			"log":(clog)
+		}
+		s %response.ContentType="application/json; charset=UTF-8"
+		w res.%ToJSON()
+	} catch e {
+		s result=e.AsStatus()
+	}
+	q result
+]]></Implementation>
+</Method>
+
+<Method name="compileAll">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s result=$$$OK
+	s obj=##class(%DynamicObject).%FromJSON(%request.Content), xjson=$zcvt($zcvt(obj.%ToJSON(), "i", "URL"), "i", "UTF8")
+	s json=##class(%DynamicObject).%FromJSON(xjson) kill obj
+	try {
+		s clog=[]
+		$$$THROWONERROR(r, ##class(cas.func.Common).compileAll(json.namespace, .log))
+		s p=""
+		f {
+			s p=$o(log(p), 1, dat) q:p=""
+			d clog.%Push(dat)
+		}
+		$$$THROWONERROR(r, ##class(cas.func.Common).exportClassFiles(json.namespace, json.directory))
+		$$$THROWONERROR(r, ##class(cas.func.Common).exportRoutineFiles(json.namespace, json.directory))
+		
+		s res={
+			"status":"1",
+			"message":"",
+			"log":(clog)
+		}
+		s %response.ContentType="application/json; charset=UTF-8"
+		w res.%ToJSON()
+	} catch e {
+		s result=e.AsStatus()
+	}
+	q result
+]]></Implementation>
+</Method>
+
+<Method name="delete">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s result=$$$OK
+	s obj=##class(%DynamicObject).%FromJSON(%request.Content), xjson=$zcvt($zcvt(obj.%ToJSON(), "i", "URL"), "i", "UTF8")
+	s json=##class(%DynamicObject).%FromJSON(xjson) kill obj
+	try {
+		s classes = json.list.%GetIterator()
+		while classes.%GetNext(.key , .sourceName ) {
+			i ($e($zcvt(sourceName, "l"), *-3, *)=".cls") {
+				$$$THROWONERROR(r, ##class(cas.func.Common).deleteClass(json.namespace, sourceName))
+			} else {
+				$$$THROWONERROR(r, ##class(cas.func.Common).deleteRoutine(json.namespace, sourceName))
+			}
+		}
+		
+		s res={
+			"status":"1",
+			"message":"Source has been deleted."
+		}
+		s %response.ContentType="application/json; charset=UTF-8"
+		w res.%ToJSON()
+	} catch e {
+		s result=e.AsStatus()
+	}
+	q result
+]]></Implementation>
+</Method>
+
+<Method name="exportAll">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s result=$$$OK
+	s obj=##class(%DynamicObject).%FromJSON(%request.Content), xjson=$zcvt($zcvt(obj.%ToJSON(), "i", "URL"), "i", "UTF8")
+	s json=##class(%DynamicObject).%FromJSON(xjson) kill obj
+	try {
+		$$$THROWONERROR(r, ##class(cas.func.Common).exportClassFiles(json.namespace, json.directory))
+		$$$THROWONERROR(r, ##class(cas.func.Common).exportRoutineFiles(json.namespace, json.directory))
+		
+		s res={
+			"status":"1",
+			"message":["Export completed."]
+		}
+		s %response.ContentType="application/json; charset=UTF-8"
+		w res.%ToJSON()
+	} catch e {
+		s result=e.AsStatus()
+	}
+	q result
+]]></Implementation>
+</Method>
+</Class>
+</Export>
