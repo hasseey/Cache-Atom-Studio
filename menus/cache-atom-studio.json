@@ -10,13 +10,14 @@
 				]
 			}
 		],
-		".tree-view .directory .name": [
+		".tree-view .project-root-header .name": [
 			{
 				"label": "Cache-Atom-Studio",
 				"submenu": [
 					{ "label": "Config", "command": "cache-atom-studio:config" },
 					{ "label": "Update All", "command": "cache-atom-studio:update-all" },
-					{ "label": "Compile All", "command": "cache-atom-studio:compile-all" }
+					{ "label": "Compile All", "command": "cache-atom-studio:compile-all" },
+					{ "label": "Export All", "command": "cache-atom-studio:export-all" }
 				]
 			}
 		],
@@ -27,6 +28,15 @@
 					{ "label": "Update", "command": "cache-atom-studio:update" },
 					{ "label": "Compile", "command": "cache-atom-studio:compile" },
 					{ "label": "Class Document", "command": "cache-atom-studio:classDocument" }
+				]
+			}
+		],
+		".tree-view .file": [
+			{
+				"label": "Cache-Atom-Studio",
+				"submenu": [
+					{ "label": "Update", "command": "cache-atom-studio:update" },
+					{ "label": "Compile", "command": "cache-atom-studio:compile" }
 				]
 			}
 		]
