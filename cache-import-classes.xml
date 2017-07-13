@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.1.1 (Build 111U)" ts="2017-07-10 23:49:36">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.1.1 (Build 111U)" ts="2017-07-13 18:31:00">
 <Class name="cas.func.Common">
 <Description><![CDATA[
 <b> Cache Atom Studio - Commands </b> : 2017/06/17 : Akio Hashimoto.<br>
 <br>]]></Description>
 <IncludeCode>%sySystem,%occFile</IncludeCode>
 <Super>%RegisteredObject</Super>
-<TimeChanged>64461,84082.659342</TimeChanged>
+<TimeChanged>64476,36123.772374</TimeChanged>
 <TimeCreated>64451,6886.500997</TimeCreated>
 
 <Method name="createDirectory">
@@ -365,7 +365,9 @@
 				continue:rs.Get("System")=4
 				
 				s clsName=rs.Get("Name")
-				continue:$e(clsName, 1, 1)="%"
+				i ($e(clsName, 1, 1)="%") {
+					continue:$e(clsName, 1, 2)'="%Z"
+				}
 				
 				s wpath=path_"/Class/"
 				s list=$lfs(clsName, ".")
@@ -404,6 +406,8 @@
 		new $namespace
 		s $namespace=ns
 		
+		s dest=##class(%SYS.Namespace).GetRoutineDest()
+		
 		s path=$tr(path, "\", "/")
 		s path=$s($e(path, *)="/":$e(path, 1, *-1), 1:path)
 		
@@ -419,9 +423,14 @@
 			$$$THROWONERROR(ec, ec)
 			i (a) {
 				s rtnName=rs.Get("Name")
-				continue:$e(rtnName, 1, 1)="%"
+				i ($e(rtnName, 1, 1)="%") {
+					continue:$e(rtnName, 1, 2)'="%Z"
+				}
 				continue:$match(rtnName, "(?i).*\.\d+\.INT$")
 				continue:$match(rtnName, "(?i).*\.[A-Z]?\d+\.MAC$")
+				
+				s wdest=##class(%SYS.Namespace).GetRoutineDest(, rtnName)
+				continue:dest'=wdest
 				
 				s rtn=##class(%Routine).%OpenId(rtnName)
 				i ('rtn.Generated) {
