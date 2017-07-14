@@ -1,5 +1,89 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.1.1 (Build 111U)" ts="2017-07-13 18:31:00">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.1.1 (Build 111U)" ts="2017-07-14 09:25:33">
+<Class name="%Zcas.Redirect">
+<Super>%RegisteredObject</Super>
+<TimeChanged>64461,83968.132454</TimeChanged>
+<TimeCreated>64461,82515.693398</TimeCreated>
+
+<Method name="run">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[className:%String,method:%String,&sts,arguments...]]></FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	s io=$io
+	s %Stream=##class(%Stream.TmpCharacter).%New()
+	u io::("^"_$zname)
+	d ##class(%Library.Device).ReDirectIO(1)
+	
+	i (sts=1) {
+		s sts=$CLASSMETHOD(className, method, arguments...)
+	} else {
+		d $CLASSMETHOD(className, method, arguments...)
+	}
+	
+	d ##class(%Library.Device).ReDirectIO(0)
+	u io
+	
+	d %Stream.Rewind()
+	
+	s result=""
+	d {
+		s dat=%Stream.Read(.len) q:len<0
+		s result=result_dat
+	} while(len>0)
+	
+	q result
+]]></Implementation>
+</Method>
+
+<Method name="runObj">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[obj:%ObjectHandle,method:%String,&sts,arguments...]]></FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	s io=$io
+	s %Stream=##class(%Stream.TmpCharacter).%New()
+	u io::("^"_$zname)
+	d ##class(%Library.Device).ReDirectIO(1)
+	
+	i (sts=1) {
+		s sts=$METHOD(obj, method, arguments...)
+	} else {
+		d $METHOD(obj, method, arguments...)
+	}
+	
+	d ##class(%Library.Device).ReDirectIO(0)
+	u io
+	
+	d %Stream.Rewind()
+	
+	s result=""
+	d {
+		s dat=%Stream.Read(.len) q:len<0
+		s result=result_dat
+	} while(len>0)
+	
+	q result
+]]></Implementation>
+</Method>
+
+<Method name="redirects">
+<ClassMethod>1</ClassMethod>
+<ProcedureBlock>0</ProcedureBlock>
+<Implementation><![CDATA[
+#; Public entry points for redirection
+rstr(len,time)  Quit ""
+rchr(time)      Quit ""
+wstr(s) Do %Stream.Write(s) Quit
+wchr(a) Do %Stream.Write($char(a)) Quit
+wnl Do %Stream.Write($char(13,10)) Quit
+wff Do %Stream.Write($char(13,10,13,10)) Quit
+wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
+]]></Implementation>
+</Method>
+</Class>
+
+
 <Class name="cas.func.Common">
 <Description><![CDATA[
 <b> Cache Atom Studio - Commands </b> : 2017/06/17 : Akio Hashimoto.<br>
