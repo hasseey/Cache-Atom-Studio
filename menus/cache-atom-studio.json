@@ -4,8 +4,7 @@
 			{
 				"label": "Cache-Atom-Studio",
 				"submenu": [
-					{ "label": "Update", "command": "cache-atom-studio:update" },
-					{ "label": "Compile", "command": "cache-atom-studio:compile" },
+					{ "label": "Upload", "command": "cache-atom-studio:upload" },
 					{ "label": "Class Document", "command": "cache-atom-studio:classDocument" }
 				]
 			}
@@ -14,10 +13,9 @@
 			{
 				"label": "Cache-Atom-Studio",
 				"submenu": [
-					{ "label": "Config", "command": "cache-atom-studio:config" },
-					{ "label": "Update All", "command": "cache-atom-studio:update-all" },
-					{ "label": "Compile All", "command": "cache-atom-studio:compile-all" },
-					{ "label": "Export All", "command": "cache-atom-studio:export-all" }
+					{ "label": "Local Setting", "command": "cache-atom-studio:config" },
+					{ "label": "Upload All", "command": "cache-atom-studio:upload-all" },
+					{ "label": "Download All", "command": "cache-atom-studio:download-all" }
 				]
 			}
 		],
@@ -25,8 +23,7 @@
 			{
 				"label": "Cache-Atom-Studio",
 				"submenu": [
-					{ "label": "Update", "command": "cache-atom-studio:update" },
-					{ "label": "Compile", "command": "cache-atom-studio:compile" },
+					{ "label": "Upload", "command": "cache-atom-studio:upload" },
 					{ "label": "Class Document", "command": "cache-atom-studio:classDocument" }
 				]
 			}
@@ -35,8 +32,7 @@
 			{
 				"label": "Cache-Atom-Studio",
 				"submenu": [
-					{ "label": "Update", "command": "cache-atom-studio:update" },
-					{ "label": "Compile", "command": "cache-atom-studio:compile" }
+					{ "label": "Upload", "command": "cache-atom-studio:upload" }
 				]
 			}
 		]
@@ -49,11 +45,9 @@
 					"label": "Cache-Atom-Studio",
 					"submenu": [
 						{ "label": "Config", "command": "cache-atom-studio:config" },
-						{ "label": "Update", "command": "cache-atom-studio:update" },
-						{ "label": "Update All", "command": "cache-atom-studio:update-all" },
-						{ "label": "Compile", "command": "cache-atom-studio:compile" },
-						{ "label": "Compile All", "command": "cache-atom-studio:compile-all" },
-						{ "label": "Export All", "command": "cache-atom-studio:export-all" }
+						{ "label": "Upload", "command": "cache-atom-studio:upload" },
+						{ "label": "Upload All", "command": "cache-atom-studio:upload-all" },
+						{ "label": "Download All", "command": "cache-atom-studio:download-all" }
 					]
 				}
 			]
