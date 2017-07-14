@@ -44,7 +44,7 @@
 				{
 					"label": "Cache-Atom-Studio",
 					"submenu": [
-						{ "label": "Config", "command": "cache-atom-studio:config" },
+						{ "label": "Local Setting", "command": "cache-atom-studio:config" },
 						{ "label": "Upload", "command": "cache-atom-studio:upload" },
 						{ "label": "Upload All", "command": "cache-atom-studio:upload-all" },
 						{ "label": "Download All", "command": "cache-atom-studio:download-all" }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.1.1 (Build 111U)" ts="2017-07-14 09:25:33">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.1.1 (Build 111U)" ts="2017-07-14 18:12:52">
 <Class name="%Zcas.Redirect">
 <Super>%RegisteredObject</Super>
 <TimeChanged>64461,83968.132454</TimeChanged>
@@ -586,8 +586,24 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 <b> Cache Atom Studio - WebApi </b> : 2017/06/17 : Akio Hashimoto.<br>
 <br>]]></Description>
 <Super>%CSP.REST</Super>
-<TimeChanged>64458,43228.087712</TimeChanged>
+<TimeChanged>64478,62692.559639</TimeChanged>
 <TimeCreated>64443,65296.487902</TimeCreated>
+
+<Parameter name="CHARSET">
+<Default>UTF-8</Default>
+</Parameter>
+
+<Parameter name="CONVERTINPUTSTREAM">
+<Default>1</Default>
+</Parameter>
+
+<Parameter name="UseSession">
+<Default>1</Default>
+</Parameter>
+
+<Parameter name="GZIPOUTPUT">
+<Default>1</Default>
+</Parameter>
 
 <XData name="UrlMap">
 <Data><![CDATA[
@@ -610,7 +626,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 	s json={
 		"CSPSessionCookie":(%session.CSPSessionCookie)
 	}
-	s %response.ContentType="application/json; charset=UTF-8"
+	s %response.ContentType="application/json; charset=utf-8"
 	w json.%ToJSON()
 	q $$$OK
 ]]></Implementation>
@@ -630,21 +646,32 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	s result=$$$OK
-	s obj=##class(%DynamicObject).%FromJSON(%request.Content), xjson=$zcvt($zcvt(obj.%ToJSON(), "i", "URL"), "i", "UTF8")
-	s json=##class(%DynamicObject).%FromJSON(xjson) kill obj
+	s obj=##class(%Library.DynamicObject).%FromJSON(%request.Content) 
+	s xjson=$zconvert(obj.%ToJSON(), "o", "UTF8"), json=##class(%Library.DynamicObject).%FromJSON(xjson) k obj
 	try {
+		s clog=[]
 		i ($e($zcvt(json.sourceName, "l"), *-3, *)=".cls") {
 			$$$THROWONERROR(r, ##class(cas.func.Common).updateClass(json.namespace, json.sourceName, json.source))
+			$$$THROWONERROR(r, ##class(cas.func.Common).compileClass(json.namespace, json.sourceName, .log))
+			$$$THROWONERROR(r, ##class(cas.func.Common).exportClass(json.namespace, json.directory, json.sourceName))
 		} else {
 			$$$THROWONERROR(r, ##class(cas.func.Common).updateRoutine(json.namespace, json.sourceName, json.source))
+			$$$THROWONERROR(r, ##class(cas.func.Common).compileRoutine(json.namespace, json.sourceName, .log))
+			$$$THROWONERROR(r, ##class(cas.func.Common).exportRoutine(json.namespace, json.directory, json.sourceName))
+		}
+		s p=""
+		f {
+			s p=$o(log(p), 1, dat) q:p=""
+			d clog.%Push(dat)
 		}
 		
 		s res={
 			"status":"1",
-			"message":["Saving of source is complete."]
+			"message":["Saving of source is complete."],
+			"log":(clog)
 		}
-		s %response.ContentType="application/json; charset=UTF-8"
-		w res.%ToJSON()
+		s %response.NoCharSetConvert=1
+		w $zcvt(res.%ToJSON(), "o", "UTF8")
 	} catch e {
 		s result=e.AsStatus()
 	}
@@ -657,8 +684,8 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	s result=$$$OK
-	s obj=##class(%DynamicObject).%FromJSON(%request.Content), xjson=$zcvt($zcvt(obj.%ToJSON(), "i", "URL"), "i", "UTF8")
-	s json=##class(%DynamicObject).%FromJSON(xjson) kill obj
+	s obj=##class(%Library.DynamicObject).%FromJSON(%request.Content) 
+	s xjson=$zconvert(obj.%ToJSON(), "o", "UTF8"), json=##class(%Library.DynamicObject).%FromJSON(xjson) k obj
 	try {
 		s clog=[]
 		s classes = json.list.%GetIterator()
@@ -687,7 +714,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 			"message":"",
 			"log":(clog)
 		}
-		s %response.ContentType="application/json; charset=UTF-8"
+		s %response.ContentType="application/json; charset=utf-8"
 		w res.%ToJSON()
 	} catch e {
 		s result=e.AsStatus()
@@ -701,8 +728,8 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	s result=$$$OK
-	s obj=##class(%DynamicObject).%FromJSON(%request.Content), xjson=$zcvt($zcvt(obj.%ToJSON(), "i", "URL"), "i", "UTF8")
-	s json=##class(%DynamicObject).%FromJSON(xjson) kill obj
+	s obj=##class(%Library.DynamicObject).%FromJSON(%request.Content) 
+	s xjson=$zconvert(obj.%ToJSON(), "o", "UTF8"), json=##class(%Library.DynamicObject).%FromJSON(xjson) k obj
 	try {
 		s clog=[]
 		$$$THROWONERROR(r, ##class(cas.func.Common).compileAll(json.namespace, .log))
@@ -719,7 +746,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 			"message":"",
 			"log":(clog)
 		}
-		s %response.ContentType="application/json; charset=UTF-8"
+		s %response.ContentType="application/json; charset=utf-8"
 		w res.%ToJSON()
 	} catch e {
 		s result=e.AsStatus()
@@ -733,8 +760,8 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	s result=$$$OK
-	s obj=##class(%DynamicObject).%FromJSON(%request.Content), xjson=$zcvt($zcvt(obj.%ToJSON(), "i", "URL"), "i", "UTF8")
-	s json=##class(%DynamicObject).%FromJSON(xjson) kill obj
+	s obj=##class(%Library.DynamicObject).%FromJSON(%request.Content) 
+	s xjson=$zconvert(obj.%ToJSON(), "o", "UTF8"), json=##class(%Library.DynamicObject).%FromJSON(xjson) k obj
 	try {
 		s classes = json.list.%GetIterator()
 		while classes.%GetNext(.key , .sourceName ) {
@@ -749,7 +776,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 			"status":"1",
 			"message":"Source has been deleted."
 		}
-		s %response.ContentType="application/json; charset=UTF-8"
+		s %response.ContentType="application/json; charset=utf-8"
 		w res.%ToJSON()
 	} catch e {
 		s result=e.AsStatus()
@@ -763,8 +790,8 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	s result=$$$OK
-	s obj=##class(%DynamicObject).%FromJSON(%request.Content), xjson=$zcvt($zcvt(obj.%ToJSON(), "i", "URL"), "i", "UTF8")
-	s json=##class(%DynamicObject).%FromJSON(xjson) kill obj
+	s obj=##class(%Library.DynamicObject).%FromJSON(%request.Content) 
+	s xjson=$zconvert(obj.%ToJSON(), "o", "UTF8"), json=##class(%Library.DynamicObject).%FromJSON(xjson) k obj
 	try {
 		$$$THROWONERROR(r, ##class(cas.func.Common).exportClassFiles(json.namespace, json.directory))
 		$$$THROWONERROR(r, ##class(cas.func.Common).exportRoutineFiles(json.namespace, json.directory))
@@ -773,7 +800,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 			"status":"1",
 			"message":["Export completed."]
 		}
-		s %response.ContentType="application/json; charset=UTF-8"
+		s %response.ContentType="application/json; charset=utf-8"
 		w res.%ToJSON()
 	} catch e {
 		s result=e.AsStatus()
