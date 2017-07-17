@@ -1,6 +1,9 @@
 {
-	"atom-workspace": {
-		"ctrl-alt-d": "cache-atom-studio:classDocument",
+	".workspace": {
+		"ctrl-alt-s": "cache-atom-studio:config",
+		"ctrl-alt-d": "cache-atom-studio:classDocument"
+	},
+	"atom-workspace atom-text-editor": {
 		"ctrl-shift-3": "cache-atom-studio:comment"
 	}
 }
