@@ -1,15 +1,78 @@
-'.text.xml':
+'.source.source.isc.udl':
 	'Cache Class':
 		'prefix': 'cl'
 		'body': """
-			<?xml version="1.0" encoding="UTF-8"?>
-			<Export generator="Cache" version="25" ts="${1:2017-01-01 00:00:00}">
-				<Class name="${2:className}">
-					<Description><![CDATA[
-						${3:discription}]]></Description>
-					<Super>${4:%RegisteredObject}</Super>
-					<TimeCreated>${5:64421,49318.40928}</TimeCreated>
+			Class ${1:class_Name} Extends ${2:%RegisteredObject}
+			{
+				// --- PARAMETER -----------------------------------------------------------------------------
+				$0
+				// --- PROPERTY ------------------------------------------------------------------------------
+				
+				// --- INDEX ---------------------------------------------------------------------------------
+				
+				// --- METHOD --------------------------------------------------------------------------------
+				
+				// --- XDATA ---------------------------------------------------------------------------------
+				
+				// --- STORAGE -------------------------------------------------------------------------------
+				
+			}
+		"""
+	'Cache ClassMethod':
+		'prefix': 'cm'
+		'body': """
+			ClassMethod ${1:MethodName}()
+			{
+				$0
+			}
+		"""
+	'Cache Method':
+		'prefix': 'm'
+		'body':"""
+			Method ${1:MethodName}()
+			{
+				$0
+			}
+		"""
+	'Cache Parameter':
+		'prefix': 'pa'
+		'body': """
+			Parameter ${1:ParameterName};
+		"""
+	'Cache Property':
+		'prefix': 'pr'
+		'body': """
+			Property ${1:PropertyName} As ${2:type};
+		"""
+	'Cache Index':
+		'prefix': 'in'
+		'body': """
+			Index ${1:IndexName} On ${2:PropertyName};
+		"""
+	'Cache Xdata':
+		'prefix': 'xd'
+		'body': """
+			Xdata ${1:DataName}
+			{
+				$0
+			}
+		"""
+	'Cache Storage':
+		'prefix': 'st'
+		'body':"""
+			Storage Default
+			{
+				<Data name="LogDefaultData">
+					<Value name="1">
+						<Value>%%CLASSNAME</Value>
+					</Value>
 					$0
-				</Class>
-			</Export>
+				</Data>
+				<DataLocation>^${1:Location}D</DataLocation>
+				<DefaultData>LogDefaultData</DefaultData>
+				<IdLocation>^${2:Location}D</IdLocation>
+				<IndexLocation>^${3:Location}I</IndexLocation>
+				<StreamLocation>^${4:Location}S</StreamLocation>
+				<Type>%Library.CacheStorage</Type>
+			}
 		"""
