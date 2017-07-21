@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.1.1 (Build 111U)" ts="2017-07-14 18:12:52">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.1.1 (Build 111U)" ts="2017-07-21 16:58:14">
 <Class name="%Zcas.Redirect">
 <Super>%RegisteredObject</Super>
-<TimeChanged>64461,83968.132454</TimeChanged>
+<TimeChanged>64482,47057.508395</TimeChanged>
 <TimeCreated>64461,82515.693398</TimeCreated>
 
 <Method name="run">
@@ -90,7 +90,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 <br>]]></Description>
 <IncludeCode>%sySystem,%occFile</IncludeCode>
 <Super>%RegisteredObject</Super>
-<TimeChanged>64476,36123.772374</TimeChanged>
+<TimeChanged>64485,60641.947973</TimeChanged>
 <TimeCreated>64451,6886.500997</TimeCreated>
 
 <Method name="createDirectory">
@@ -104,9 +104,120 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 ]]></Implementation>
 </Method>
 
+<Method name="import">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[ns:%String,files:%String,sub:%Boolean=0,compile:%String="",&targetList:%String="",*log:%String=""]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s result=$$$OK
+	try {
+		new $namespace
+		s $namespace=ns
+		
+		i ('$lv(files)) {
+			s files=$lb(files)
+		}
+		
+		f p=1:1:$ll(files) {
+			s file=$li(files, p)
+			i (##class(%File).DirectoryExists(file)) {
+				s wlist=""
+				s rs=##class(%ResultSet).%New("%File:FileSet")
+				s r=rs.Execute(file, "*", "", 1)
+				while(rs.Next()) {
+					s name=rs.Data("Name")
+					s type=rs.Data("Type")
+					s item=rs.Data("ItemName")
+					continue:$e(item, 1, 1)="."
+					i (type="D") {
+						i (sub) {
+							s r=..import(ns, name, sub, "", .targetList)
+						}
+					} else {
+						s wlist=wlist_$lb(name)
+					}
+				}
+				i (wlist'="") {
+					s r=..import(ns, wlist, sub, "", .targetList)
+				}
+			} elseif (##class(%File).Exists(file)) {
+				s ex=$zcvt($p(file, ".", *), "l")
+				i (ex="cls") {
+					s text="", item=""
+					s ff=##class(%Stream.FileCharacter).%New()
+					s r=ff.LinkToFile(file)
+					s ff.TranslateTable="UTF8"
+					
+					while('ff.AtEnd) {
+						s text=text_ff.Read()
+					}
+					
+					f c=1:1:$l(text, ff.LineTerminator) {
+						s dat=$p(text, ff.LineTerminator, c)
+						i ($e(dat, 1, $l("Class "))="Class ") {
+							s item=$p(dat, " ", 2)
+						}
+					}
+					i (item'="") {
+						s r=..updateClass(ns, item, text, 1)
+					}
+					s targetList(item)=""
+				} elseif ((ex="inc")!(ex="mac")!(ex="int")) {
+					s text=""
+					s ff=##class(%Stream.FileCharacter).%New()
+					s r=ff.LinkToFile(file)
+					s ff.TranslateTable="UTF8"
+					s item=##class(%File).GetFilename(file)
+					
+					while('ff.AtEnd) {
+						s text=text_ff.Read()
+					}
+					
+					s r=..updateRoutine(ns, item, text, 1)
+					
+					s targetList(item)=""
+				}
+			}
+		}
+		
+		i (compile'="") {
+			// ex. compile="cuk"
+			
+			i ($d(targetList)) {
+				s pjName="cosAtomProject"
+				s pj=##class(%Studio.Project).%New()
+				s pj.Name=pjName
+				
+				s name="", p=1
+				f {
+					s name=$o(targetList(name)) q:name=""
+					s r=pj.AddItem(name), p=p+1
+				}
+				s c=pj.%Save(),c=pj.%Close() k pj
+				
+				i (p>0) {
+					s sts=1
+					s clog=##class(%Zcas.Redirect).run("%SYSTEM.OBJ", "CompileProject", .sts, pjName, compile, .err)
+					$$$THROWONERROR(r, sts)
+					
+					s clog=$tr($zstrip(clog, "<>w", $c(13,10)), $c(13), "")
+					f p=1:1:$l(clog, $c(10)) {
+						s log($i(log))=$p(clog, $c(10), p)
+					}
+				}
+				$$$THROWONERROR(r, $System.OBJ.DeleteProject(pjName))
+			}
+		}
+	} catch e {
+		s result=e.AsStatus()
+	}
+	q result
+]]></Implementation>
+</Method>
+
 <Method name="updateClass">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>ns:%String,className:%String,text:%String</FormalSpec>
+<FormalSpec>ns:%String,className:%String,text:%String,notcvt:%Boolean=0</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	s result=$$$OK
@@ -127,7 +238,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 		}
 		
 		s stream=##class(%Stream.GlobalCharacter).%New()
-		d stream.Write($zcvt(text,"I","UTF8"))
+		d stream.Write($s(notcvt:text, 1:$zcvt(text,"I","UTF8")))
 		$$$THROWONERROR(r, ##class(%Compiler.UDL.TextServices).SetTextFromStream(ns, className, stream))
 	} catch e {
 		s result=e.AsStatus()
@@ -138,7 +249,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 
 <Method name="updateRoutine">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>ns:%String,routineName:%String,text:%String</FormalSpec>
+<FormalSpec>ns:%String,routineName:%String,text:%String,notcvt:%Boolean=0</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	s result=$$$OK
@@ -154,7 +265,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 		}
 		
 		s stream=##class(%Stream.GlobalCharacter).%New()
-		d stream.Write($zcvt(text,"I","UTF8"))
+		d stream.Write($s(notcvt:text, 1:$zcvt(text,"I","UTF8")))
 		$$$THROWONERROR(r, routine.CopyFromAndSave(stream))
 	} catch e {
 		s result=e.AsStatus()
