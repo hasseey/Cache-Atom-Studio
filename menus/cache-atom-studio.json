@@ -5,7 +5,9 @@
 				"label": "Cache-Atom-Studio",
 				"submenu": [
 					{ "label": "Upload", "command": "cache-atom-studio:upload" },
-					{ "label": "Class Document", "command": "cache-atom-studio:classDocument" }
+					{ "label": "Class Document", "command": "cache-atom-studio:classDocument" },
+					{ "label": "Comment", "command": "cache-atom-studio:comment" },
+					{ "label": "Example", "command": "cache-atom-studio:example" }
 				]
 			}
 		],

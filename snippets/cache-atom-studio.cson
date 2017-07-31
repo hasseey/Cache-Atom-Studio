@@ -49,6 +49,28 @@
 		'body': """
 			Index ${1:IndexName} On ${2:PropertyName};
 		"""
+	'Cache Query':
+		'prefix': 'qu'
+		'body': """
+			Query ${1:QueryName}() As %Query(ROWSPEC = "")
+			{
+			}
+			
+			ClassMethod ${1:QueryName}Execute(ByRef qHandle As %Binary) As %Status
+			{
+				Quit $$$OK
+			}
+			
+			ClassMethod ${1:QueryName}Close(ByRef qHandle As %Binary) As %Status [ PlaceAfter = NewQuery1Execute ]
+			{
+				Quit $$$OK
+			}
+			
+			ClassMethod ${1:QueryName}Fetch(ByRef qHandle As %Binary, ByRef Row As %List, ByRef AtEnd As %Integer = 0) As %Status [ PlaceAfter = NewQuery1Execute ]
+			{
+				Quit $$$OK
+			}
+		"""
 	'Cache Xdata':
 		'prefix': 'xd'
 		'body': """
@@ -75,4 +97,15 @@
 				<StreamLocation>^${4:Location}S</StreamLocation>
 				<Type>%Library.CacheStorage</Type>
 			}
+		"""
+	'Cache Try':
+		'prefix': 'try'
+		'body': """
+			set result = $$$OK
+			try {
+				$0
+			} catch e {
+				set result = e.AsStatus()
+			}
+			quit result
 		"""

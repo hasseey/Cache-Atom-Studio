@@ -4,6 +4,7 @@
 		"ctrl-alt-d": "cache-atom-studio:classDocument"
 	},
 	"atom-workspace atom-text-editor": {
-		"ctrl-shift-3": "cache-atom-studio:comment"
+		"ctrl-shift-3": "cache-atom-studio:comment",
+		"ctrl-shift-4": "cache-atom-studio:example"
 	}
 }
