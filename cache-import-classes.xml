@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.1.1 (Build 111U)" ts="2017-07-22 08:53:33">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.1.1 (Build 111U)" ts="2017-08-10 09:55:11">
 <Class name="%Zcas.Redirect">
 <Super>%RegisteredObject</Super>
 <TimeChanged>64482,47057.508395</TimeChanged>
@@ -90,7 +90,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 <br>]]></Description>
 <IncludeCode>%sySystem,%occFile</IncludeCode>
 <Super>%RegisteredObject</Super>
-<TimeChanged>64486,31825.999082</TimeChanged>
+<TimeChanged>64505,35147.231241</TimeChanged>
 <TimeCreated>64451,6886.500997</TimeCreated>
 
 <Method name="createDirectory">
@@ -345,7 +345,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 		new $namespace
 		s $namespace=ns
 		
-		k list
+		k targetList
 		
 		s rs=##class(%ResultSet).%New("%ClassDefinition:ClassInfo")
 		$$$THROWONERROR(r, rs.Execute("", 0))
@@ -357,29 +357,33 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 				continue:rs.Get("System")=4
 				
 				s clsName=rs.Get("Name")
-				continue:$e(clsName, 1, 1)="%"
-				
-				s list(clsName_".cls")=""
+				i ($e(clsName, 1, 1)="%") {
+					continue:$e(clsName, 1, 2)'="%Z"
+				}
+				s targetList(clsName_".cls")=""
 			}
 		} while(a)
+		
+		s dest=##class(%SYS.Namespace).GetRoutineDest()
 		
 		s rs=##class(%ResultSet).%New("%Library.Routine:RoutineList")
 		$$$THROWONERROR(r, rs.Execute("", 1, 0, ns))
 		
-		s routines=""
 		d {
 			s a=rs.Next(.ec)
 			$$$THROWONERROR(ec, ec)
 			i (a) {
 				s rtnName=rs.Get("Name")
-				continue:$e(rtnName, 1, 1)="%"
+				i ($e(rtnName, 1, 1)="%") {
+					continue:$e(rtnName, 1, 2)'="%Z"
+				}
 				continue:$match(rtnName, "(?i).*\.\d+\.INT$")
 				continue:$match(rtnName, "(?i).*\.[A-Z]?\d+\.MAC$")
 				
-				s rtn=##class(%Routine).%OpenId(rtnName)
-				i ('rtn.Generated) {
-					s list(rtnName)=""
-				}
+				s wdest=##class(%SYS.Namespace).GetRoutineDest(, rtnName)
+				continue:dest'=wdest
+				
+				s targetList(rtnName)=""
 			}
 		} while(a)
 		
@@ -389,21 +393,21 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 		
 		s name="", p=1
 		f {
-			s name=$o(list(name)) q:name=""
+			s name=$o(targetList(name)) q:name=""
 			s r=pj.AddItem(name), p=p+1
 		}
 		s c=pj.%Save(),c=pj.%Close() k pj
 		
 		i (p>0) {
 			s sts=1
-			s clog=##class(%Zcas.Redirect).run("%SYSTEM.OBJ", "CompileProject", .sts, pjName, "cuk", .err)
+			s wlog=##class(%Zcas.Redirect).run("%SYSTEM.OBJ", "CompileProject", .sts, pjName, "cuk /checkuptodate=expandedonly", .err)
 			$$$THROWONERROR(r, sts)
-			
-			s clog=$tr($zstrip(clog, "<>w", $c(13,10)), $c(13), "")
-			f p=1:1:$l(clog, $c(10)) {
-				s log($i(log))=$p(clog, $c(10), p)
+			s wlog=$tr($zstrip(wlog, "<>w", $c(13,10)), $c(13), "")
+			f p=1:1:$l(wlog, $c(10)) {
+				s log($i(log))=$p(wlog, $c(10), p)
 			}
 		}
+		
 		$$$THROWONERROR(r, $System.OBJ.DeleteProject(pjName))
 	} catch e {
 		s result=e.AsStatus()
@@ -458,71 +462,49 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 
 <Method name="exportClass">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>ns:%String,path:%String,className</FormalSpec>
+<FormalSpec><![CDATA[ns:%String,className,&files:%DynamicArray="",path:%String=""]]></FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	s result=$$$OK
 	try {
 		new $namespace
 		s $namespace=ns
-		
-		s path=$tr(path, "\", "/")
-		s path=$s($e(path, *)="/":$e(path, 1, *-1), 1:path)
 		
 		i ($e($zcvt(className, "l"), *-3, *)=".cls") {
 			s className=$e(className, 1, *-4)
 		}
 		
-		s wpath=path_"/Class/"
-		s list=$lfs(className, ".")
-		f i=1:1:$ll(list)-1 {
-			s wpath=wpath_$li(list, i)_"/"
-		}
-		d ..createDirectory(wpath)
-		
-		s r=##class(%Compiler.UDL.TextServices).GetTextAsStream(ns, className, .tStream)
-		s file=##class(%Stream.FileBinary).%New()
-		s wfile=wpath_$li(list, *)_".cls"
-		s file.Filename=wfile
-		s r=file.Write($zcvt(tStream.Read(tStream.Size), "O", "UTF8"))
-		s r=file.%Save()
-		k file
-		i ($$$ISWINDOWS) {
-		} else {
-			d $zf(-1, "chmod 777 "_wfile)
-		}
-	} catch e {
-		s result=e.AsStatus()
-	}
-	q result
-]]></Implementation>
-</Method>
-
-<Method name="exportRoutine">
-<ClassMethod>1</ClassMethod>
-<FormalSpec>ns:%String,path:%String,routineName</FormalSpec>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
-	s result=$$$OK
-	try {
-		new $namespace
-		s $namespace=ns
-		
-		s path=$tr(path, "\", "/")
-		s path=$s($e(path, *)="/":$e(path, 1, *-1), 1:path)
-		
-		s wpath=path_"/Routine/"
-		d ..createDirectory(wpath)
-		
-		s rtn=##class(%Routine).%OpenId(routineName)
-		i ('rtn.Generated) {
-			s list=$lfs(routineName, ".")
+		i ($IsObject(files)) {
+			s wpath="/Class/"
+			s list=$lfs(className, ".")
+			f i=1:1:$ll(list)-1 {
+				s wpath=wpath_$li(list, i)_"/"
+			}
 			
+			s r=##class(%Compiler.UDL.TextServices).GetTextAsStream(ns, className, .tStream)
+			s wfile=wpath_$li(list, *)_".cls"
+			s text=tStream.Read(tStream.Size)
+			s obj={
+				"filename":(wfile),
+				"text":(text)
+			}
+			d files.%Push(obj)
+		} else {
+			s path=$tr(path, "\", "/")
+			s path=$s($e(path, *)="/":$e(path, 1, *-1), 1:path)
+			
+			s wpath=path_"/Class/"
+			s list=$lfs(className, ".")
+			f i=1:1:$ll(list)-1 {
+				s wpath=wpath_$li(list, i)_"/"
+			}
+			d ..createDirectory(wpath)
+			
+			s r=##class(%Compiler.UDL.TextServices).GetTextAsStream(ns, className, .tStream)
 			s file=##class(%Stream.FileBinary).%New()
-			s wfile=wpath_$lts($li(list,1,*-1),".")_"."_$zcvt($li(list, *), "l")
+			s wfile=wpath_$li(list, *)_".cls"
 			s file.Filename=wfile
-			//s r=file.CopyFrom(rtn)
-			s r=file.Write($zcvt(rtn.Read(rtn.Size), "O", "UTF8"))
+			s r=file.Write($zcvt(tStream.Read(tStream.Size), "O", "UTF8"))
 			s r=file.%Save()
 			k file
 			i ($$$ISWINDOWS) {
@@ -537,9 +519,9 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 ]]></Implementation>
 </Method>
 
-<Method name="exportClassFiles">
+<Method name="exportRoutine">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>ns:%String,path:%String</FormalSpec>
+<FormalSpec><![CDATA[ns:%String,routineName,&files:%DynamicArray="",path:%String=""]]></FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	s result=$$$OK
@@ -547,8 +529,66 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 		new $namespace
 		s $namespace=ns
 		
-		s path=$tr(path, "\", "/")
-		s path=$s($e(path, *)="/":$e(path, 1, *-1), 1:path)
+		i ($IsObject(files)) {
+			s wpath="/Routine/"
+			
+			s rtn=##class(%Routine).%OpenId(routineName)
+			i ('rtn.Generated) {
+				s list=$lfs(routineName, ".")
+				s wfile=wpath_$lts($li(list,1,*-1),".")_"."_$zcvt($li(list, *), "l")
+				s text=rtn.Read(rtn.Size)
+				
+				s obj={
+					"filename":(wfile),
+					"text":(text)
+				}
+				d files.%Push(obj)
+			}
+		} else {
+			s path=$tr(path, "\", "/")
+			s path=$s($e(path, *)="/":$e(path, 1, *-1), 1:path)
+			
+			s wpath=path_"/Routine/"
+			d ..createDirectory(wpath)
+			
+			s rtn=##class(%Routine).%OpenId(routineName)
+			i ('rtn.Generated) {
+				s list=$lfs(routineName, ".")
+				
+				s file=##class(%Stream.FileBinary).%New()
+				s wfile=wpath_$lts($li(list,1,*-1),".")_"."_$zcvt($li(list, *), "l")
+				s file.Filename=wfile
+				//s r=file.CopyFrom(rtn)
+				s r=file.Write($zcvt(rtn.Read(rtn.Size), "O", "UTF8"))
+				s r=file.%Save()
+				k file
+				i ($$$ISWINDOWS) {
+				} else {
+					d $zf(-1, "chmod 777 "_wfile)
+				}
+			}
+		}
+	} catch e {
+		s result=e.AsStatus()
+	}
+	q result
+]]></Implementation>
+</Method>
+
+<Method name="exportClassFiles">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[ns:%String,&files:%DynamicArray="",path:%String=""]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s result=$$$OK
+	try {
+		new $namespace
+		s $namespace=ns
+		
+		i (path'="") {
+			s path=$tr(path, "\", "/")
+			s path=$s($e(path, *)="/":$e(path, 1, *-1), 1:path)
+		}
 		
 		s rs=##class(%ResultSet).%New("%ClassDefinition:ClassInfo")
 		$$$THROWONERROR(r, rs.Execute("", 0))
@@ -564,23 +604,40 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 					continue:$e(clsName, 1, 2)'="%Z"
 				}
 				
-				s wpath=path_"/Class/"
-				s list=$lfs(clsName, ".")
-				f i=1:1:$ll(list)-1 {
-					s wpath=wpath_$li(list, i)_"/"
-				}
-				d ..createDirectory(wpath)
-				
-				s r=##class(%Compiler.UDL.TextServices).GetTextAsStream(ns, clsName, .tStream)
-				s file=##class(%Stream.FileBinary).%New()
-				s wfile=wpath_$li(list, *)_".cls"
-				s file.Filename=wfile
-				s r=file.Write($zcvt(tStream.Read(tStream.Size), "O", "UTF8"))
-				s r=file.%Save()
-				k file
-				i ($$$ISWINDOWS) {
+				i ($IsObject(files)) {
+					s wpath="/Class/"
+					s list=$lfs(clsName, ".")
+					f i=1:1:$ll(list)-1 {
+						s wpath=wpath_$li(list, i)_"/"
+					}
+					
+					s r=##class(%Compiler.UDL.TextServices).GetTextAsStream(ns, clsName, .tStream)
+					s wfile=wpath_$li(list, *)_".cls"
+					s text=tStream.Read(tStream.Size)
+					s obj={
+						"filename":(wfile),
+						"text":(text)
+					}
+					d files.%Push(obj)
 				} else {
-					d $zf(-1, "chmod 777 "_wfile)
+					s wpath=path_"/Class/"
+					s list=$lfs(clsName, ".")
+					f i=1:1:$ll(list)-1 {
+						s wpath=wpath_$li(list, i)_"/"
+					}
+					d ..createDirectory(wpath)
+					
+					s r=##class(%Compiler.UDL.TextServices).GetTextAsStream(ns, clsName, .tStream)
+					s file=##class(%Stream.FileBinary).%New()
+					s wfile=wpath_$li(list, *)_".cls"
+					s file.Filename=wfile
+					s r=file.Write($zcvt(tStream.Read(tStream.Size), "O", "UTF8"))
+					s r=file.%Save()
+					k file
+					i ($$$ISWINDOWS) {
+					} else {
+						d $zf(-1, "chmod 777 "_wfile)
+					}
 				}
 			}
 		} while(a)
@@ -593,7 +650,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 
 <Method name="exportRoutineFiles">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>ns:%String,path:%String</FormalSpec>
+<FormalSpec><![CDATA[ns:%String,&files:%DynamicArray="",path:%String=""]]></FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	s result=$$$OK
@@ -603,11 +660,13 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 		
 		s dest=##class(%SYS.Namespace).GetRoutineDest()
 		
-		s path=$tr(path, "\", "/")
-		s path=$s($e(path, *)="/":$e(path, 1, *-1), 1:path)
-		
-		s wpath=path_"/Routine/"
-		d ..createDirectory(wpath)
+		i (path'="") {
+			s path=$tr(path, "\", "/")
+			s path=$s($e(path, *)="/":$e(path, 1, *-1), 1:path)
+			
+			s wpath=path_"/Routine/"
+			d ..createDirectory(wpath)
+		}
 		
 		s rs=##class(%ResultSet).%New("%Library.Routine:RoutineList")
 		$$$THROWONERROR(r, rs.Execute("", 1, 0, ns))
@@ -631,16 +690,27 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 				i ('rtn.Generated) {
 					s list=$lfs(rtnName, ".")
 					
-					s file=##class(%Stream.FileBinary).%New()
-					s wfile=wpath_$lts($li(list,1,*-1),".")_"."_$zcvt($li(list, *), "l")
-					s file.Filename=wfile
-					//s r=file.CopyFrom(rtn)
-					s r=file.Write($zcvt(rtn.Read(rtn.Size), "O", "UTF8"))
-					s r=file.%Save()
-					k file
-					i ($$$ISWINDOWS) {
+					i ($IsObject(files)) {
+						s wfile=wpath_$lts($li(list,1,*-1),".")_"."_$zcvt($li(list, *), "l")
+						s text=rtn.Read(rtn.Size)
+						
+						s obj={
+							"filename":(wfile),
+							"text":(text)
+						}
+						d files.%Push(obj)
 					} else {
-						d $zf(-1, "chmod 777 "_wfile)
+						s file=##class(%Stream.FileBinary).%New()
+						s wfile=wpath_$lts($li(list,1,*-1),".")_"."_$zcvt($li(list, *), "l")
+						s file.Filename=wfile
+						//s r=file.CopyFrom(rtn)
+						s r=file.Write($zcvt(rtn.Read(rtn.Size), "O", "UTF8"))
+						s r=file.%Save()
+						k file
+						i ($$$ISWINDOWS) {
+						} else {
+							d $zf(-1, "chmod 777 "_wfile)
+						}
 					}
 				}
 			}
@@ -695,7 +765,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 <b> Cache Atom Studio - WebApi </b> : 2017/06/17 : Akio Hashimoto.<br>
 <br>]]></Description>
 <Super>%CSP.REST</Super>
-<TimeChanged>64486,31887.456147</TimeChanged>
+<TimeChanged>64505,34440.623267</TimeChanged>
 <TimeCreated>64443,65296.487902</TimeCreated>
 
 <Parameter name="CHARSET">
@@ -720,8 +790,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 <Route Url="/start/" Method="POST" Call="start" />
 <Route Url="/end/" Method="POST" Call="end" />
 <Route Url="/update/" Method="POST" Call="update" />
-<Route Url="/compile/" Method="POST" Call="compile" />
-<Route Url="/compile-all/" Method="POST" Call="compileAll" />
+<Route Url="/update-all/" Method="POST" Call="updateAll" />
 <Route Url="/delete/" Method="POST" Call="delete" />
 <Route Url="/export-all/" Method="POST" Call="exportAll" />
 </Routes>
@@ -759,69 +828,10 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 	s xjson=$zconvert(obj.%ToJSON(), "o", "UTF8"), json=##class(%Library.DynamicObject).%FromJSON(xjson) k obj
 	try {
 		s clog=[]
-		i ($e($zcvt(json.sourceName, "l"), *-3, *)=".cls") {
-			s r=##class(cas.func.Common).updateClass(json.namespace, json.sourceName, json.source)
-			i ($$$ISERR(r)) {
-				s res={
-					"status":"0",
-					"message":($System.Status.GetErrorText(r))
-				}
-				s %response.NoCharSetConvert=1
-				w $zcvt(res.%ToJSON(), "o", "UTF8")
-				q
-			}
-			$$$THROWONERROR(r, ##class(cas.func.Common).compileClass(json.namespace, json.sourceName, .log))
-			i ($$$ISERR(r)) {
-				s res={
-					"status":"0",
-					"message":($System.Status.GetErrorText(r))
-				}
-				s %response.NoCharSetConvert=1
-				w $zcvt(res.%ToJSON(), "o", "UTF8")
-				q
-			}
-			$$$THROWONERROR(r, ##class(cas.func.Common).exportClass(json.namespace, json.directory, json.sourceName))
-			i ($$$ISERR(r)) {
-				s res={
-					"status":"0",
-					"message":($System.Status.GetErrorText(r))
-				}
-				s %response.NoCharSetConvert=1
-				w $zcvt(res.%ToJSON(), "o", "UTF8")
-				q
-			}
-		} else {
-			$$$THROWONERROR(r, ##class(cas.func.Common).updateRoutine(json.namespace, json.sourceName, json.source))
-			i ($$$ISERR(r)) {
-				s res={
-					"status":"0",
-					"message":($System.Status.GetErrorText(r))
-				}
-				s %response.NoCharSetConvert=1
-				w $zcvt(res.%ToJSON(), "o", "UTF8")
-				q
-			}
-			$$$THROWONERROR(r, ##class(cas.func.Common).compileRoutine(json.namespace, json.sourceName, .log))
-			i ($$$ISERR(r)) {
-				s res={
-					"status":"0",
-					"message":($System.Status.GetErrorText(r))
-				}
-				s %response.NoCharSetConvert=1
-				w $zcvt(res.%ToJSON(), "o", "UTF8")
-				q
-			}
-			$$$THROWONERROR(r, ##class(cas.func.Common).exportRoutine(json.namespace, json.directory, json.sourceName))
-			i ($$$ISERR(r)) {
-				s res={
-					"status":"0",
-					"message":($System.Status.GetErrorText(r))
-				}
-				s %response.NoCharSetConvert=1
-				w $zcvt(res.%ToJSON(), "o", "UTF8")
-				q
-			}
-		}
+		s files=[]
+		
+		$$$THROWONERROR(r, ..updateEx(json, files, .log, 1))
+		
 		s p=""
 		f {
 			s p=$o(log(p), 1, dat) q:p=""
@@ -831,54 +841,14 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 		s res={
 			"status":"1",
 			"message":["Saving of source is complete."],
+			"files":(files),
 			"log":(clog)
-		}
-		s %response.NoCharSetConvert=1
-		w $zcvt(res.%ToJSON(), "o", "UTF8")
-	} catch e {
-		s result=e.AsStatus()
-	}
-	q result
-]]></Implementation>
-</Method>
-
-<Method name="compile">
-<ClassMethod>1</ClassMethod>
-<ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[
-	s result=$$$OK
-	s obj=##class(%Library.DynamicObject).%FromJSON(%request.Content) 
-	s xjson=$zconvert(obj.%ToJSON(), "o", "UTF8"), json=##class(%Library.DynamicObject).%FromJSON(xjson) k obj
-	try {
-		s clog=[]
-		s classes = json.list.%GetIterator()
-		while classes.%GetNext(.key , .sourceName ) {
-			i ($e($zcvt(sourceName, "l"), *-3, *)=".cls") {
-				$$$THROWONERROR(r, ##class(cas.func.Common).compileClass(json.namespace, sourceName, .log))
-				s p=""
-				f {
-					s p=$o(log(p), 1, dat) q:p=""
-					d clog.%Push(dat)
-				}
-				$$$THROWONERROR(r, ##class(cas.func.Common).exportClass(json.namespace, json.directory, sourceName))
-			} else {
-				$$$THROWONERROR(r, ##class(cas.func.Common).compileRoutine(json.namespace, sourceName, .log))
-				s p=""
-				f {
-					s p=$o(log(p), 1, dat) q:p=""
-					d clog.%Push(dat)
-				}
-				$$$THROWONERROR(r, ##class(cas.func.Common).exportRoutine(json.namespace, json.directory, sourceName))
-			}
 		}
 		
-		s res={
-			"status":"1",
-			"message":"",
-			"log":(clog)
-		}
-		s %response.ContentType="application/json; charset=utf-8"
-		w res.%ToJSON()
+		s %response.NoCharSetConvert=1
+		//s %response.ContentType="application/json; charset=utf-8"
+		w $zcvt(res.%ToJSON(), "o", "UTF8")
+		//w res.%ToJSON()
 	} catch e {
 		s result=e.AsStatus()
 	}
@@ -886,7 +856,34 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 ]]></Implementation>
 </Method>
 
-<Method name="compileAll">
+<Method name="updateEx">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[json:%DynamicObject,files:%DynamicArray="",&log:%String,compileFlag:%Boolean=0]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s result=$$$OK
+	try {
+		i ($e($zcvt(json.sourceName, "l"), *-3, *)=".cls") {
+			$$$THROWONERROR(r, ##class(cas.func.Common).updateClass(json.namespace, json.sourceName, json.source))
+			i (compileFlag) {
+				$$$THROWONERROR(r, ##class(cas.func.Common).compileClass(json.namespace, json.sourceName, .log))
+				$$$THROWONERROR(r, ##class(cas.func.Common).exportClass(json.namespace, json.sourceName, files))
+			}
+		} else {
+			$$$THROWONERROR(r, ##class(cas.func.Common).updateRoutine(json.namespace, json.sourceName, json.source))
+			i (compileFlag) {
+				$$$THROWONERROR(r, ##class(cas.func.Common).compileRoutine(json.namespace, json.sourceName, .log))
+				$$$THROWONERROR(r, ##class(cas.func.Common).exportRoutine(json.namespace, json.sourceName, files))
+			}
+		}
+	} catch e {
+		s result=e.AsStatus()
+	}
+	q result
+]]></Implementation>
+</Method>
+
+<Method name="updateAll">
 <ClassMethod>1</ClassMethod>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
@@ -894,23 +891,34 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 	s obj=##class(%Library.DynamicObject).%FromJSON(%request.Content) 
 	s xjson=$zconvert(obj.%ToJSON(), "o", "UTF8"), json=##class(%Library.DynamicObject).%FromJSON(xjson) k obj
 	try {
-		s clog=[]
+		s itrFile = json.items.%GetIterator()
+		while itrFile.%GetNext(.key , .item) {
+			s item.namespace=json.namespace
+			$$$THROWONERROR(r, ..updateEx(item))
+		}
+		
 		$$$THROWONERROR(r, ##class(cas.func.Common).compileAll(json.namespace, .log))
+		
+		s files=[]
+		$$$THROWONERROR(r, ##class(cas.func.Common).exportClassFiles(json.namespace, files))
+		$$$THROWONERROR(r, ##class(cas.func.Common).exportRoutineFiles(json.namespace, files))
+		
+		s clog=[]
 		s p=""
 		f {
 			s p=$o(log(p), 1, dat) q:p=""
 			d clog.%Push(dat)
 		}
-		$$$THROWONERROR(r, ##class(cas.func.Common).exportClassFiles(json.namespace, json.directory))
-		$$$THROWONERROR(r, ##class(cas.func.Common).exportRoutineFiles(json.namespace, json.directory))
-		
+		s files=[]
 		s res={
 			"status":"1",
-			"message":"",
+			"message":["Saving of source is complete."],
+			"files":(files),
 			"log":(clog)
 		}
-		s %response.ContentType="application/json; charset=utf-8"
-		w res.%ToJSON()
+		//s %response.ContentType="application/json; charset=utf-8"
+		s %response.NoCharSetConvert=1
+		w $zcvt(res.%ToJSON(), "o", "UTF8")
 	} catch e {
 		s result=e.AsStatus()
 	}
@@ -956,12 +964,14 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 	s obj=##class(%Library.DynamicObject).%FromJSON(%request.Content) 
 	s xjson=$zconvert(obj.%ToJSON(), "o", "UTF8"), json=##class(%Library.DynamicObject).%FromJSON(xjson) k obj
 	try {
-		$$$THROWONERROR(r, ##class(cas.func.Common).exportClassFiles(json.namespace, json.directory))
-		$$$THROWONERROR(r, ##class(cas.func.Common).exportRoutineFiles(json.namespace, json.directory))
+		s files=[]
+		$$$THROWONERROR(r, ##class(cas.func.Common).exportClassFiles(json.namespace, files))
+		$$$THROWONERROR(r, ##class(cas.func.Common).exportRoutineFiles(json.namespace, files))
 		
 		s res={
 			"status":"1",
-			"message":["Export completed."]
+			"message":["Export completed."],
+			"files":(files)
 		}
 		s %response.ContentType="application/json; charset=utf-8"
 		w res.%ToJSON()
