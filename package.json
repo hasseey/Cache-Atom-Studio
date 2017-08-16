@@ -1,21 +1,21 @@
 {
-	"name": "cache-atom-studio",
-	"main": "./lib/cache-atom-studio",
-	"version": "0.0.0",
-	"description": "This is a package to link the source with InterSystems Cache.",
-	"keywords": [
-		"InterSystems",
-		"Cache"
-	],
-	"activationEvents": [
-		"cache-atom-studio:config"
-	],
-	"repository": "https://github.com/hasseey/Cache-Atom-Studio",
-	"license": "MIT",
-	"engines": {
-		"atom": ">=1.0.0 <2.0.0"
-	},
-	"dependencies": {
-		"jquery": "^3.2.1"
-	}
+  "name": "cache-atom-studio",
+  "main": "./lib/cache-atom-studio",
+  "version": "1.0.0",
+  "description": "This is a package to link the source with InterSystems Cache.",
+  "keywords": [
+    "InterSystems",
+    "Cache"
+  ],
+  "activationEvents": [
+    "cache-atom-studio:config"
+  ],
+  "repository": "https://github.com/hasseey/Cache-Atom-Studio",
+  "license": "MIT",
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  },
+  "dependencies": {
+    "jquery": "^3.2.1"
+  }
 }
