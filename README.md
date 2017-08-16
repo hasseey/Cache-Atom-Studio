@@ -4,7 +4,7 @@ This is a package for Caché development at Atom.
 
 Cachéサーバーと連動して、Cache Object Scriptやルーチンの更新が可能になります。
 
-![cache-atom-studio sample-image](https://user-images.githubusercontent.com/19701801/29351193-b5ec005a-829c-11e7-85ae-926fbabd251a.png)
+![cache-atom-studio sample-image](https://user-images.githubusercontent.com/19701801/29353165-3298a00c-82a4-11e7-8ad5-9f5da90aafa5.png)
 
 #### Install
 
