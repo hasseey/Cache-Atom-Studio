@@ -6,9 +6,12 @@ Cachéサーバーと連動して、Cache Object Scriptやルーチンの更新�
 
 ![cache-atom-studio sample-image](https://user-images.githubusercontent.com/19701801/29353264-9925a748-82a4-11e7-9c9e-2cdf2eabfeb8.png)
 
+[2017-09-21] There is an update in the Caché class.  
+Cachéのクラスに更新があります。
+
 #### Install
 
-1. Create an appropriate namespace on your Cache server and import the "cache-import-classes.xml" file. Three classes will be imported.  
+1. Create an appropriate namespace on your Caché server and import the "cache-import-classes.xml" file. Three classes will be imported.  
 Cacheサーバーに適当なネームスペースを作成し、"cache-import-classes.xml"ファイルをインポートします。3つのクラスがインポートされます。
 
 2. Create a web application and specify the "cas.service.webapi.Broker" class as the dispatch class. Select "None" for "Use cookies for sessions".  
