@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.1.1 (Build 111U)" ts="2017-08-10 09:55:11">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.1.1 (Build 111U)" ts="2017-09-21 16:23:25">
 <Class name="%Zcas.Redirect">
 <Super>%RegisteredObject</Super>
-<TimeChanged>64482,47057.508395</TimeChanged>
+<TimeChanged>64547,57050.749301</TimeChanged>
 <TimeCreated>64461,82515.693398</TimeCreated>
 
 <Method name="run">
@@ -11,9 +11,10 @@
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
 	s io=$io
+	s mnemonic=##class(%Device).GetMnemonicRoutine()
 	s %Stream=##class(%Stream.TmpCharacter).%New()
 	u io::("^"_$zname)
-	d ##class(%Library.Device).ReDirectIO(1)
+	s redirect=##class(%Library.Device).ReDirectIO(1)
 	
 	i (sts=1) {
 		s sts=$CLASSMETHOD(className, method, arguments...)
@@ -21,8 +22,12 @@
 		d $CLASSMETHOD(className, method, arguments...)
 	}
 	
-	d ##class(%Library.Device).ReDirectIO(0)
-	u io
+	i (mnemonic'="") {
+		u io::("^"_mnemonic)
+	} else {
+		u io
+	}
+	d ##class(%Library.Device).ReDirectIO(redirect)
 	
 	d %Stream.Rewind()
 	
@@ -42,9 +47,10 @@
 <ReturnType>%String</ReturnType>
 <Implementation><![CDATA[
 	s io=$io
+	s mnemonic=##class(%Device).GetMnemonicRoutine()
 	s %Stream=##class(%Stream.TmpCharacter).%New()
 	u io::("^"_$zname)
-	d ##class(%Library.Device).ReDirectIO(1)
+	s redirect=##class(%Library.Device).ReDirectIO(1)
 	
 	i (sts=1) {
 		s sts=$METHOD(obj, method, arguments...)
@@ -52,8 +58,12 @@
 		d $METHOD(obj, method, arguments...)
 	}
 	
-	d ##class(%Library.Device).ReDirectIO(0)
-	u io
+	i (mnemonic'="") {
+		u io::("^"_mnemonic)
+	} else {
+		u io
+	}
+	d ##class(%Library.Device).ReDirectIO(redirect)
 	
 	d %Stream.Rewind()
 	
@@ -90,7 +100,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 <br>]]></Description>
 <IncludeCode>%sySystem,%occFile</IncludeCode>
 <Super>%RegisteredObject</Super>
-<TimeChanged>64505,35147.231241</TimeChanged>
+<TimeChanged>64547,58347.704381</TimeChanged>
 <TimeCreated>64451,6886.500997</TimeCreated>
 
 <Method name="createDirectory">
@@ -597,11 +607,12 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 			s a=rs.Next(.ec)
 			$$$THROWONERROR(ec, ec)
 			i (a) {
-				continue:rs.Get("System")=4
+				continue:rs.Get("System")'=0
 				
 				s clsName=rs.Get("Name")
 				i ($e(clsName, 1, 1)="%") {
 					continue:$e(clsName, 1, 2)'="%Z"
+					continue:$l($p(clsName, ".", 1))>2
 				}
 				
 				i ($IsObject(files)) {
@@ -765,7 +776,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 <b> Cache Atom Studio - WebApi </b> : 2017/06/17 : Akio Hashimoto.<br>
 <br>]]></Description>
 <Super>%CSP.REST</Super>
-<TimeChanged>64505,34440.623267</TimeChanged>
+<TimeChanged>64547,57374.498973</TimeChanged>
 <TimeCreated>64443,65296.487902</TimeCreated>
 
 <Parameter name="CHARSET">
@@ -804,7 +815,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 	s json={
 		"CSPSessionCookie":(%session.CSPSessionCookie)
 	}
-	s %response.ContentType="application/json; charset=utf-8"
+	s %response.ContentType=..#CONTENTTYPEJSON
 	w json.%ToJSON()
 	q $$$OK
 ]]></Implementation>
@@ -845,10 +856,8 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 			"log":(clog)
 		}
 		
-		s %response.NoCharSetConvert=1
-		//s %response.ContentType="application/json; charset=utf-8"
-		w $zcvt(res.%ToJSON(), "o", "UTF8")
-		//w res.%ToJSON()
+		s %response.ContentType=..#CONTENTTYPEJSON
+		w res.%ToJSON()
 	} catch e {
 		s result=e.AsStatus()
 	}
@@ -916,9 +925,9 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 			"files":(files),
 			"log":(clog)
 		}
-		//s %response.ContentType="application/json; charset=utf-8"
-		s %response.NoCharSetConvert=1
-		w $zcvt(res.%ToJSON(), "o", "UTF8")
+		
+		s %response.ContentType=..#CONTENTTYPEJSON
+		w res.%ToJSON()
 	} catch e {
 		s result=e.AsStatus()
 	}
@@ -947,7 +956,8 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 			"status":"1",
 			"message":"Source has been deleted."
 		}
-		s %response.ContentType="application/json; charset=utf-8"
+		
+		s %response.ContentType=..#CONTENTTYPEJSON
 		w res.%ToJSON()
 	} catch e {
 		s result=e.AsStatus()
@@ -973,7 +983,8 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 			"message":["Export completed."],
 			"files":(files)
 		}
-		s %response.ContentType="application/json; charset=utf-8"
+		
+		s %response.ContentType=..#CONTENTTYPEJSON
 		w res.%ToJSON()
 	} catch e {
 		s result=e.AsStatus()
