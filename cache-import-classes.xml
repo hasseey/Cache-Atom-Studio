@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.1.1 (Build 111U)" ts="2017-09-21 16:56:54">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.1.1 (Build 111U)" ts="2017-09-29 12:58:58">
 <Class name="%Zcas.Redirect">
 <Super>%RegisteredObject</Super>
 <TimeChanged>64547,57050.749301</TimeChanged>
@@ -100,7 +100,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 <br>]]></Description>
 <IncludeCode>%sySystem,%occFile</IncludeCode>
 <Super>%RegisteredObject</Super>
-<TimeChanged>64547,60775.396316</TimeChanged>
+<TimeChanged>64555,46430.991293</TimeChanged>
 <TimeCreated>64451,6886.500997</TimeCreated>
 
 <Method name="createDirectory">
@@ -675,7 +675,6 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 			s path=$tr(path, "\", "/")
 			s path=$s($e(path, *)="/":$e(path, 1, *-1), 1:path)
 			
-			s wpath=path_"/Routine/"
 			d ..createDirectory(wpath)
 		}
 		
@@ -702,6 +701,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 					s list=$lfs(rtnName, ".")
 					
 					i ($IsObject(files)) {
+						s wpath="/Routine/"
 						s wfile=wpath_$lts($li(list,1,*-1),".")_"."_$zcvt($li(list, *), "l")
 						s text=rtn.Read(rtn.Size)
 						
@@ -711,6 +711,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 						}
 						d files.%Push(obj)
 					} else {
+						s wpath=path_"/Routine/"
 						s file=##class(%Stream.FileBinary).%New()
 						s wfile=wpath_$lts($li(list,1,*-1),".")_"."_$zcvt($li(list, *), "l")
 						s file.Filename=wfile
