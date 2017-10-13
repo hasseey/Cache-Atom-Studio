@@ -6,7 +6,7 @@ Cachéサーバーと連動して、Cache Object Scriptやルーチンの更新�
 
 ![cache-atom-studio sample-image](https://user-images.githubusercontent.com/19701801/29353264-9925a748-82a4-11e7-9c9e-2cdf2eabfeb8.png)
 
-[2017-09-29 v1.1.2] There is an update in the Caché class.  
+[2017-10-13 v1.1.3] There is an update in the Caché class.  
 Cachéのクラスに更新があります。
 
 #### Install

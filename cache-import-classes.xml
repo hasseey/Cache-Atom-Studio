@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.1.1 (Build 111U)" ts="2017-09-29 12:58:58">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.1.1 (Build 111U)" ts="2017-10-13 10:12:02">
 <Class name="%Zcas.Redirect">
 <Super>%RegisteredObject</Super>
 <TimeChanged>64547,57050.749301</TimeChanged>
@@ -777,7 +777,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 <b> Cache Atom Studio - WebApi </b> : 2017/06/17 : Akio Hashimoto.<br>
 <br>]]></Description>
 <Super>%CSP.REST</Super>
-<TimeChanged>64547,57374.498973</TimeChanged>
+<TimeChanged>64569,36242.73267</TimeChanged>
 <TimeCreated>64443,65296.487902</TimeCreated>
 
 <Parameter name="CHARSET">
@@ -804,6 +804,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 <Route Url="/update/" Method="POST" Call="update" />
 <Route Url="/update-all/" Method="POST" Call="updateAll" />
 <Route Url="/delete/" Method="POST" Call="delete" />
+<Route Url="/export/" Method="POST" Call="export" />
 <Route Url="/export-all/" Method="POST" Call="exportAll" />
 </Routes>
 ]]></Data>
@@ -956,6 +957,36 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 		s res={
 			"status":"1",
 			"message":"Source has been deleted."
+		}
+		
+		s %response.ContentType=..#CONTENTTYPEJSON
+		w res.%ToJSON()
+	} catch e {
+		s result=e.AsStatus()
+	}
+	q result
+]]></Implementation>
+</Method>
+
+<Method name="export">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	s result=$$$OK
+	s obj=##class(%Library.DynamicObject).%FromJSON(%request.Content) 
+	s xjson=$zconvert(obj.%ToJSON(), "o", "UTF8"), json=##class(%Library.DynamicObject).%FromJSON(xjson) k obj
+	try {
+		s files=[]
+		i ($e($zcvt(json.sourceName, "l"), *-3, *)=".cls") {
+			$$$THROWONERROR(r, ##class(cas.func.Common).exportClass(json.namespace, json.sourceName, files))
+		} else {
+			$$$THROWONERROR(r, ##class(cas.func.Common).exportRoutine(json.namespace, json.sourceName, files))
+		}
+		
+		s res={
+			"status":"1",
+			"message":["Export completed."],
+			"files":(files)
 		}
 		
 		s %response.ContentType=..#CONTENTTYPEJSON
