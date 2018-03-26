@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.1.1 (Build 111U)" ts="2017-10-13 10:12:02">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.2.1 (Build 801U)" ts="2018-03-26 12:02:03">
 <Class name="%Zcas.Redirect">
 <Super>%RegisteredObject</Super>
 <TimeChanged>64547,57050.749301</TimeChanged>
@@ -777,7 +777,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 <b> Cache Atom Studio - WebApi </b> : 2017/06/17 : Akio Hashimoto.<br>
 <br>]]></Description>
 <Super>%CSP.REST</Super>
-<TimeChanged>64569,36242.73267</TimeChanged>
+<TimeChanged>64733,41420.791173</TimeChanged>
 <TimeCreated>64443,65296.487902</TimeCreated>
 
 <Parameter name="CHARSET">
@@ -836,7 +836,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 <ClassMethod>1</ClassMethod>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	s result=$$$OK
+	s result={}
 	s obj=##class(%Library.DynamicObject).%FromJSON(%request.Content) 
 	s xjson=$zconvert(obj.%ToJSON(), "o", "UTF8"), json=##class(%Library.DynamicObject).%FromJSON(xjson) k obj
 	try {
@@ -851,19 +851,21 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 			d clog.%Push(dat)
 		}
 		
-		s res={
+		s result={
 			"status":"1",
-			"message":["Saving of source is complete."],
+			"message":"Saving of source is complete.",
 			"files":(files),
 			"log":(clog)
 		}
-		
-		s %response.ContentType=..#CONTENTTYPEJSON
-		w res.%ToJSON()
 	} catch e {
-		s result=e.AsStatus()
+		s result={
+			"status":"0",
+			"message":(e.DisplayString())
+		}
 	}
-	q result
+	s %response.ContentType=..#CONTENTTYPEJSON
+	w result.%ToJSON()
+	q $$$OK
 ]]></Implementation>
 </Method>
 
@@ -898,7 +900,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 <ClassMethod>1</ClassMethod>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	s result=$$$OK
+	s result={}
 	s obj=##class(%Library.DynamicObject).%FromJSON(%request.Content) 
 	s xjson=$zconvert(obj.%ToJSON(), "o", "UTF8"), json=##class(%Library.DynamicObject).%FromJSON(xjson) k obj
 	try {
@@ -921,19 +923,21 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 			d clog.%Push(dat)
 		}
 		s files=[]
-		s res={
+		s result={
 			"status":"1",
-			"message":["Saving of source is complete."],
+			"message":"Saving of source is complete.",
 			"files":(files),
 			"log":(clog)
 		}
-		
-		s %response.ContentType=..#CONTENTTYPEJSON
-		w res.%ToJSON()
 	} catch e {
-		s result=e.AsStatus()
+		s result={
+			"status":"0",
+			"message":(e.DisplayString())
+		}
 	}
-	q result
+	s %response.ContentType=..#CONTENTTYPEJSON
+	w result.%ToJSON()
+	q $$$OK
 ]]></Implementation>
 </Method>
 
@@ -941,7 +945,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 <ClassMethod>1</ClassMethod>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	s result=$$$OK
+	s result={}
 	s obj=##class(%Library.DynamicObject).%FromJSON(%request.Content) 
 	s xjson=$zconvert(obj.%ToJSON(), "o", "UTF8"), json=##class(%Library.DynamicObject).%FromJSON(xjson) k obj
 	try {
@@ -954,17 +958,22 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 			}
 		}
 		
-		s res={
+		s result={
 			"status":"1",
 			"message":"Source has been deleted."
 		}
 		
 		s %response.ContentType=..#CONTENTTYPEJSON
-		w res.%ToJSON()
+		w result.%ToJSON()
 	} catch e {
-		s result=e.AsStatus()
+		s result={
+			"status":"0",
+			"message":(e.DisplayString())
+		}
 	}
-	q result
+	s %response.ContentType=..#CONTENTTYPEJSON
+	w result.%ToJSON()
+	q $$$OK
 ]]></Implementation>
 </Method>
 
@@ -972,7 +981,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 <ClassMethod>1</ClassMethod>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	s result=$$$OK
+	s result={}
 	s obj=##class(%Library.DynamicObject).%FromJSON(%request.Content) 
 	s xjson=$zconvert(obj.%ToJSON(), "o", "UTF8"), json=##class(%Library.DynamicObject).%FromJSON(xjson) k obj
 	try {
@@ -983,18 +992,20 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 			$$$THROWONERROR(r, ##class(cas.func.Common).exportRoutine(json.namespace, json.sourceName, files))
 		}
 		
-		s res={
+		s result={
 			"status":"1",
-			"message":["Export completed."],
+			"message":"Export completed.",
 			"files":(files)
 		}
-		
-		s %response.ContentType=..#CONTENTTYPEJSON
-		w res.%ToJSON()
 	} catch e {
-		s result=e.AsStatus()
+		s result={
+			"status":"0",
+			"message":(e.DisplayString())
+		}
 	}
-	q result
+	s %response.ContentType=..#CONTENTTYPEJSON
+	w result.%ToJSON()
+	q $$$OK
 ]]></Implementation>
 </Method>
 
@@ -1002,7 +1013,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 <ClassMethod>1</ClassMethod>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	s result=$$$OK
+	s result={}
 	s obj=##class(%Library.DynamicObject).%FromJSON(%request.Content) 
 	s xjson=$zconvert(obj.%ToJSON(), "o", "UTF8"), json=##class(%Library.DynamicObject).%FromJSON(xjson) k obj
 	try {
@@ -1010,18 +1021,20 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 		$$$THROWONERROR(r, ##class(cas.func.Common).exportClassFiles(json.namespace, files))
 		$$$THROWONERROR(r, ##class(cas.func.Common).exportRoutineFiles(json.namespace, files))
 		
-		s res={
+		s result={
 			"status":"1",
-			"message":["Export completed."],
+			"message":"Export completed.",
 			"files":(files)
 		}
-		
-		s %response.ContentType=..#CONTENTTYPEJSON
-		w res.%ToJSON()
 	} catch e {
-		s result=e.AsStatus()
+		s result={
+			"status":"0",
+			"message":(e.DisplayString())
+		}
 	}
-	q result
+	s %response.ContentType=..#CONTENTTYPEJSON
+	w result.%ToJSON()
+	q $$$OK
 ]]></Implementation>
 </Method>
 </Class>
