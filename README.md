@@ -1,6 +1,7 @@
 # Cache-Atom-Studio package
 [![Travis](https://img.shields.io/travis/hasseey/Cache-Atom-Studio.svg)](https://travis-ci.org/hasseey/Cache-Atom-Studio)
 
+[![GitHub stars](https://img.shields.io/github/stars/hasseey/Cache-Atom-Studio.svg?style=social&label=Star)](https://github.com/hasseey/Cache-Atom-Studio)
 [![GitHub forks](https://img.shields.io/github/forks/hasseey/Cache-Atom-Studio.svg?style=social&label=Fork)](https://github.com/hasseey/Cache-Atom-Studio)
 
 This is a package for Caché development at Atom.  
