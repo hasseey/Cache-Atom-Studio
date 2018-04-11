@@ -1,4 +1,8 @@
 # Cache-Atom-Studio package
+[![Travis](https://img.shields.io/travis/hasseey/Cache-Atom-Studio.svg)](https://travis-ci.org/hasseey/Cache-Atom-Studio)
+![apm](https://img.shields.io/apm/dm/vim-mode.svg)
+![apm](https://img.shields.io/apm/v/vim-mode.svg)
+![apm](https://img.shields.io/apm/l/vim-mode.svg)
 
 This is a package for Caché development at Atom.  
 
