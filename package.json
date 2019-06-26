@@ -1,7 +1,7 @@
 {
   "name": "cache-atom-studio",
   "main": "./lib/cache-atom-studio",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "This is a package to link the source with InterSystems Cache.",
   "keywords": [
     "InterSystems",
