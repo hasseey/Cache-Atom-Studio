@@ -6,8 +6,6 @@
 				"submenu": [
 					{ "label": "Upload", "command": "cache-atom-studio:upload" },
 					{ "label": "Download", "command": "cache-atom-studio:download" },
-					{ "label": "Export", "command": "cache-atom-studio:export" },
-					{ "label": "Export to select", "command": "cache-atom-studio:export-select" },
 					{ "label": "Class Document", "command": "cache-atom-studio:classDocument" },
 					{ "label": "Comment", "command": "cache-atom-studio:comment" },
 					{ "label": "Example", "command": "cache-atom-studio:example" }
@@ -20,8 +18,7 @@
 				"submenu": [
 					{ "label": "Local Setting", "command": "cache-atom-studio:config" },
 					{ "label": "Upload All", "command": "cache-atom-studio:upload-all" },
-					{ "label": "Download All", "command": "cache-atom-studio:download-all" },
-					{ "label": "Export to select", "command": "cache-atom-studio:export-select" }
+					{ "label": "Download All", "command": "cache-atom-studio:download-all" }
 				]
 			}
 		],
@@ -31,7 +28,6 @@
 				"submenu": [
 					{ "label": "Upload", "command": "cache-atom-studio:upload" },
 					{ "label": "Download", "command": "cache-atom-studio:download" },
-					{ "label": "Export", "command": "cache-atom-studio:export" },
 					{ "label": "Class Document", "command": "cache-atom-studio:classDocument" }
 				]
 			}
@@ -41,8 +37,7 @@
 				"label": "Cache-Atom-Studio",
 				"submenu": [
 					{ "label": "Upload", "command": "cache-atom-studio:upload" },
-					{ "label": "Download", "command": "cache-atom-studio:download" },
-					{ "label": "Export", "command": "cache-atom-studio:export" }
+					{ "label": "Download", "command": "cache-atom-studio:download" }
 				]
 			}
 		]
@@ -58,8 +53,7 @@
 						{ "label": "Upload", "command": "cache-atom-studio:upload" },
 						{ "label": "Upload All", "command": "cache-atom-studio:upload-all" },
 						{ "label": "Download", "command": "cache-atom-studio:download" },
-						{ "label": "Download All", "command": "cache-atom-studio:download-all" },
-						{ "label": "Export to select", "command": "cache-atom-studio:export-select" }
+						{ "label": "Download All", "command": "cache-atom-studio:download-all" }
 					]
 				}
 			]

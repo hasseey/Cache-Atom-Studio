@@ -1,11 +1,4 @@
 # Cache-Atom-Studio package
-[![Travis](https://img.shields.io/travis/hasseey/Cache-Atom-Studio.svg)](https://travis-ci.org/hasseey/Cache-Atom-Studio)
-[![Installs!](https://img.shields.io/apm/dm/cache-atom-studio.svg?style=flat-square)](https://atom.io/packages/cache-atom-studio)
-[![Version!](https://img.shields.io/apm/v/cache-atom-studio.svg?style=flat-square)](https://atom.io/packages/cache-atom-studio)
-[![License](https://img.shields.io/apm/l/cache-atom-studio.svg?style=flat-square)](https://github.com/hasseey/Cache-Atom-Studio/blob/master/LICENSE.md)
-
-[![GitHub stars](https://img.shields.io/github/stars/hasseey/Cache-Atom-Studio.svg?style=social&label=Star)](https://github.com/hasseey/Cache-Atom-Studio)
-[![GitHub forks](https://img.shields.io/github/forks/hasseey/Cache-Atom-Studio.svg?style=social&label=Fork)](https://github.com/hasseey/Cache-Atom-Studio)
 
 This is a package for Caché development at Atom.  
 
