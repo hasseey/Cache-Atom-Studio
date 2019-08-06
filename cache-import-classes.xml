@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.2.2 (Build 865U)" ts="2019-07-08 13:49:47">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-64) 2017.2.2 (Build 865U)" ts="2019-08-06 13:28:09">
 <Class name="%Zcas.Redirect">
 <Super>%RegisteredObject</Super>
 <TimeChanged>64547,57050.749301</TimeChanged>
@@ -100,7 +100,7 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 <br>]]></Description>
 <IncludeCode>%sySystem,%occFile</IncludeCode>
 <Super>%RegisteredObject</Super>
-<TimeChanged>65202,48357.248547</TimeChanged>
+<TimeChanged>65231,48310.399983</TimeChanged>
 <TimeCreated>64451,6886.500997</TimeCreated>
 
 <Method name="createDirectory">
@@ -235,6 +235,10 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 		new $namespace
 		s $namespace=ns
 		
+		//-- 改行コードを変更
+		i ('$f(text, $c(13))) {
+			s text=$REPLACE(text,$c(10),$c(13,10))
+		}
 		//-- BOM有りを無しに変更
 		i ($zhex($a($e(text,1)))="EF")&($zhex($a($e(text,2)))="BB")&($zhex($a($e(text,3)))="BF") {
 			s text=$e(text,4,*)
@@ -272,6 +276,10 @@ wtab(n) New chars Set $piece(chars," ",n+1)="" Do %Stream.Write(chars) Quit
 		new $namespace
 		s $namespace=ns
 		
+		//-- 改行コードを変更
+		i ('$f(text, $c(13))) {
+			s text=$REPLACE(text,$c(10),$c(13,10))
+		}
 		//-- BOM有りを無しに変更
 		i ($zhex($a($e(text,1)))="EF")&($zhex($a($e(text,2)))="BB")&($zhex($a($e(text,3)))="BF") {
 			s text=$e(text,4,*)
